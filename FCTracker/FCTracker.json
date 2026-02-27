@@ -1,0 +1,14 @@
+{
+  "Author": "erdelf",
+  "Name": "FC Tracker",
+  "InternalName": "FCTracker",
+  "Punchline": "A short one-liner that shows up in /xlplugins.",
+  "Description": "Tracks FCs and related info",
+  "ApplicableVersion": "any",
+  "Tags": [
+    "track",
+    "fc",
+    "company",
+    "erdelf"
+  ]
+}

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11512.155
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FCTracker", "FCTracker\FCTracker.csproj", "{2A20A5CF-3209-1492-6BAF-3AB68D9D1860}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NightmareUI", "..\AutoDuty\NightmareUI\NightmareUI\NightmareUI.csproj", "{FEBDFB75-9A57-3257-7480-9F0B3B4A11D3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2A20A5CF-3209-1492-6BAF-3AB68D9D1860}.Debug|x64.ActiveCfg = Debug|x64
+		{2A20A5CF-3209-1492-6BAF-3AB68D9D1860}.Debug|x64.Build.0 = Debug|x64
+		{2A20A5CF-3209-1492-6BAF-3AB68D9D1860}.Release|x64.ActiveCfg = Release|x64
+		{2A20A5CF-3209-1492-6BAF-3AB68D9D1860}.Release|x64.Build.0 = Release|x64
+		{FEBDFB75-9A57-3257-7480-9F0B3B4A11D3}.Debug|x64.ActiveCfg = Debug|x64
+		{FEBDFB75-9A57-3257-7480-9F0B3B4A11D3}.Debug|x64.Build.0 = Debug|x64
+		{FEBDFB75-9A57-3257-7480-9F0B3B4A11D3}.Release|x64.ActiveCfg = Release|x64
+		{FEBDFB75-9A57-3257-7480-9F0B3B4A11D3}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DEA3481B-74E2-4DF4-9A89-D94852BEE644}
+	EndGlobalSection
+EndGlobal
