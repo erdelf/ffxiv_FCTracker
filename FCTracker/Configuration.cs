@@ -35,6 +35,8 @@ public class Configuration
     [JsonIgnore]
     public IEnumerable<FCData> AllFCData => this.FCData.Values;
     public ulong GetFCIdForCID(ulong cid) => this.CIDToFCId.TryGetValue(cid, out ulong fcId) ? fcId : 0;
+    
+    public void ClearData() => this.FCData.Clear();
 
     public unsafe void UpdateFCData()
     {
@@ -63,7 +65,23 @@ public class Configuration
 
             if (DateTime.TryParse(text, out DateTime dt))
                 fcData.FoundingDate = dt;
+
+            if(arrayData->Size > 71)
+            {
+                x        = arrayData->StringArray[72];
+                seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
+                fcData.HouseTemp = seString.GetText();
+            }
         }
+
+        arrayData = RaptureAtkModule.Instance()->GetStringArrayData(48);
+        if (arrayData->Size > 1)
+        {
+            CStringPointer x        = arrayData->StringArray[2];
+            SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
+            fcData.Tag = seString.GetText();
+        }
+
 
         fcData.FCName   = fcProxy->NameString;
         fcData.TotalMembers = fcProxy->TotalMembers;
@@ -100,12 +118,14 @@ public class FCData
 {
     [JsonIgnore]
     public World? World => field ??= ExcelWorldHelper.Get(this.HomeWorldId);
-    public ulong        Id           { get; set; }
-    public string       FCName       { get; set; } = string.Empty;
-    public uint         TotalMembers { get; set; }
+    public ulong   Id           { get; set; }
+    public string FCName       { get; set; } = string.Empty;
+    public string Tag          { get; set; } = string.Empty;
+    public uint    TotalMembers { get; set; }
     public string       MasterString { get; set; } = string.Empty;
     public uint         HomeWorldId  { get; set; }
     public GrandCompany GrandCompany { get; set; }
-    public uint         Rank         { get; set; }
-    public DateTime     FoundingDate { get; set; }
+    public uint         Rank         { get; set; } // 6 needed for Housing
+    public DateTime     FoundingDate { get; set; } // 30 days needed for Housing
+    public string HouseTemp { get; set; } = string.Empty;
 }
