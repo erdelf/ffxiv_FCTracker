@@ -65,13 +65,6 @@ public class Configuration
 
             if (DateTime.TryParse(text, out DateTime dt))
                 fcData.FoundingDate = dt;
-
-            if(arrayData->Size > 71)
-            {
-                x        = arrayData->StringArray[72];
-                seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
-                fcData.HouseTemp = seString.GetText();
-            }
         }
 
         arrayData = RaptureAtkModule.Instance()->GetStringArrayData(48);
@@ -80,6 +73,15 @@ public class Configuration
             CStringPointer x        = arrayData->StringArray[2];
             SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
             fcData.Tag = seString.GetText();
+        }
+
+
+        arrayData = RaptureAtkModule.Instance()->GetStringArrayData(64);
+        if (arrayData->Size > 2)
+        {
+            CStringPointer x        = arrayData->StringArray[3];
+            SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
+            fcData.HouseTemp = seString.GetText();
         }
 
 

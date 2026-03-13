@@ -10,12 +10,14 @@
 
     internal static class PlayerHelper
     {
-        public static unsafe bool IsValid =>
+        private static unsafe bool IsValid =>
             Control.GetLocalPlayer() != null
          && ThreadSafety.IsMainThread
          && Svc.Condition.Any()
          && !Svc.Condition[ConditionFlag.BetweenAreas]
          && !Svc.Condition[ConditionFlag.BetweenAreas51]
+         && !Svc.Condition[ConditionFlag.WatchingCutscene]
+         && !Svc.Condition[ConditionFlag.WatchingCutscene78]
          && Player.Available
          && Player.Interactable;
 
@@ -23,14 +25,14 @@
                                      && (Svc.Condition[ConditionFlag.Jumping]
                                       || Svc.Condition[ConditionFlag.Jumping61]);
 
-        public static unsafe bool IsAnimationLocked => ActionManager.Instance()->AnimationLock > 0;
+        private static unsafe bool IsAnimationLocked => ActionManager.Instance()->AnimationLock > 0;
 
         public static bool IsReady => IsValid && !IsOccupied;
 
-        public static bool IsOccupied => GenericHelpers.IsOccupied() || Svc.Condition[ConditionFlag.Jumping61];
+        private static bool IsOccupied => GenericHelpers.IsOccupied() || Svc.Condition[ConditionFlag.Jumping61];
 
         public static bool IsReadyFull => IsValid && !IsOccupiedFull;
 
-        public static bool IsOccupiedFull => IsOccupied || IsAnimationLocked;
+        private static bool IsOccupiedFull => IsOccupied || IsAnimationLocked;
     }
 }

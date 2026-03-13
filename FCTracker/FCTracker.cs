@@ -169,11 +169,15 @@ public sealed class FCTracker : IDalamudPlugin
 
     public unsafe void GetFCInfo()
     {
-        this.TaskManager.Enqueue(() => PlayerHelper.IsReady);
-        AgentFreeCompany* agentFreeCompany = AgentFreeCompany.Instance();
-        this.TaskManager.Enqueue(() => agentFreeCompany->Show());
-        this.TaskManager.Enqueue(() => agentFreeCompany->IsAddonShown());
-        this.TaskManager.Enqueue(() => agentFreeCompany->IsAddonReady());
+        this.TaskManager.Enqueue(() => PlayerHelper.IsReadyFull);
+        this.TaskManager.Enqueue(() =>
+                                 {
+                                     if (Player.Character->FreeCompanyTagString.Length <= 0)
+                                         this.TaskManager.Abort();
+                                 });
+        this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Show());
+        this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->IsAddonShown());
+        this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->IsAddonReady());
         this.TaskManager.Enqueue(() =>
                                  {
                                      if (GenericHelpers.TryGetAddonByName("FreeCompany", out AtkUnitBase* fcAddon) && fcAddon->IsReady())
@@ -182,12 +186,53 @@ public sealed class FCTracker : IDalamudPlugin
                                          return true;
                                      }
                                      return false;
+                                 }, "FC Status exec");
+        this.TaskManager.Enqueue(() => GenericHelpers.TryGetAddonByName("FreeCompanyStatus", out AtkUnitBase* fcAddon) && fcAddon->IsReady(), "FCStatus check");
+        this.TaskManager.Enqueue(() =>
+                                 {
+                                     StringArrayData* arrayData = RaptureAtkModule.Instance()->GetStringArrayData(49);
+                                     if (arrayData->Size > 4)
+                                     {
+                                         CStringPointer x        = arrayData->StringArray[6];
+                                         SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
+                                         string         text     = seString.GetText();
+                                         return text.Length > 0;
+                                     }
+                                     return false;
                                  });
-        this.TaskManager.Enqueue(() => GenericHelpers.TryGetAddonByName("FreeCompanyStatus", out AtkUnitBase* fcAddon) && fcAddon->IsReady());
-        this.TaskManager.Enqueue(() => PlayerHelper.IsReady);
-        this.TaskManager.EnqueueDelay(1000);
+        this.TaskManager.Enqueue(() =>
+                                 {
+                                     if (GenericHelpers.TryGetAddonByName("FreeCompanyStatus", out AtkUnitBase* fcAddon) && fcAddon->IsReady())
+                                     {
+                                         StringArrayData* arrayData = RaptureAtkModule.Instance()->GetStringArrayData(49);
+                                         if (arrayData->Size > 71)
+                                         {
+                                             CStringPointer x        = arrayData->StringArray[72];
+                                             SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
+                                             string         text     = seString.GetText();
+
+                                             if (text.Length > 0)
+                                                 this.TaskManager.InsertMulti(
+                                                      new TaskManagerTask(() => Callback.Fire(fcAddon, true, 2), "Open HousingBoard"),
+                                                      new TaskManagerTask(() =>
+                                                                          {
+                                                                              if (!GenericHelpers.TryGetAddonByName("HousingSignBoard", out AtkUnitBase* signboardAddon) || !signboardAddon->IsReady())
+                                                                                  return false;
+                                                                              arrayData = RaptureAtkModule.Instance()->GetStringArrayData(64);
+                                                                              if (arrayData == null || arrayData->Size < 2)
+                                                                                  return false;
+                                                                              CStringPointer pointer = arrayData->StringArray[3];
+                                                                              return pointer is { HasValue: true, Length: > 0 };
+                                                                          }, "Housing Signboard data check")
+                                                     );
+                                         }
+                                         return true;
+                                     }
+                                     return false;
+                                 });
         this.TaskManager.Enqueue(() => Configuration.Instance.UpdateFCData());
-        this.TaskManager.Enqueue(() => agentFreeCompany->Hide());
+        this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Hide());
+        this.TaskManager.Enqueue(() => AgentHousingSignboard.Instance()->Hide());
     }
 
     public void ToggleConfigUi() { } // this.ConfigWindow.Toggle();
