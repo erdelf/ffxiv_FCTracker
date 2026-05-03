@@ -11,8 +11,4 @@
     <PackageReference Include="ECommons" Version="3.2.0.3" />
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\AutoDuty\NightmareUI\NightmareUI\NightmareUI.csproj" />
-  </ItemGroup>
 </Project>

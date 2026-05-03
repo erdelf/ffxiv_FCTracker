@@ -115,6 +115,14 @@ public class FCTrackerSerializationFactory : DefaultSerializationFactory, ISeria
         Encoding.UTF8.GetBytes(this.Serialize(config));
 }
 
+public enum HousingStatusCategory
+{
+    Ready,   // 30+ days, rank ≥6, no house
+    Soon,    // <=7 days remaining
+    Waiting, // >7 days remaining
+    Owned    // HouseTemp populated
+}
+
 [JsonObject(MemberSerialization.OptOut)]
 public class FCData
 {
@@ -130,4 +138,64 @@ public class FCData
     public uint         Rank         { get; set; } // 6 needed for Housing
     public DateTime     FoundingDate { get; set; } // 30 days needed for Housing
     public string HouseTemp { get; set; } = string.Empty;
+
+    [JsonIgnore]
+    public string WorldName => this.World?.Name.ToString() ?? "??";
+
+    [JsonIgnore]
+    public string Datacenter => this.World?.DataCenter.ValueNullable?.Name.ToString() ?? string.Empty;
+
+    [JsonIgnore]
+    public string Region
+    {
+        get
+        {
+            uint? regionId = this.World?.DataCenter.ValueNullable?.Region.RowId;
+            return regionId switch
+            {
+                1 => "JP",
+                2 => "NA",
+                3 => "EU",
+                4 => "OCE",
+                _ => "??"
+            };
+        }
+    }
+
+    [JsonIgnore]
+    public bool HasHouse => !string.IsNullOrWhiteSpace(this.HouseTemp);
+
+    [JsonIgnore]
+    public int DaysSinceFounded => this.FoundingDate == default ? 0 : (int)(DateTime.Now - this.FoundingDate).TotalDays;
+
+    [JsonIgnore]
+    public int DaysUntilEligible
+    {
+        get
+        {
+            int remaining = 30 - this.DaysSinceFounded;
+            return remaining > 0 ? remaining : 0;
+        }
+    }
+
+    [JsonIgnore]
+    public bool IsEligible => this.DaysSinceFounded >= 30 && this.Rank >= 6 && !this.HasHouse;
+
+    [JsonIgnore]
+    public DateTime EligibilityDate => this.FoundingDate == default ? DateTime.Now : this.FoundingDate.AddDays(30);
+
+    public HousingStatusCategory GetStatusCategory()
+    {
+        if (this.HasHouse) return HousingStatusCategory.Owned;
+        if (this.IsEligible) return HousingStatusCategory.Ready;
+        if (this.DaysUntilEligible <= 7) return HousingStatusCategory.Soon;
+        return HousingStatusCategory.Waiting;
+    }
+
+    public string GetHousingStatusText()
+    {
+        if (this.HasHouse) return this.HouseTemp;
+        if (this.IsEligible) return "Eligible";
+        return $"{this.DaysUntilEligible}d left";
+    }
 }

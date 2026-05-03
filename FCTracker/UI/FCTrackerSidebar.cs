@@ -1,0 +1,365 @@
+namespace FCTracker.UI;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Utility.Raii;
+using FCTracker.Services;
+
+public class FCTrackerSidebar
+{
+    private readonly IFCDataProvider dataProvider;
+    private readonly Dictionary<string, bool> regionExpandedState = new();
+    private readonly Dictionary<string, bool> dcExpandedState = new();
+
+    public string ActiveViewId { get; private set; } = "all";
+    public string? SelectedRegion { get; private set; }
+    public string? SelectedDatacenter { get; private set; }
+    public string? SelectedWorld { get; private set; }
+
+    private const float SidebarWidth = 200f;
+
+    public FCTrackerSidebar(IFCDataProvider dataProvider)
+    {
+        this.dataProvider = dataProvider;
+    }
+
+    public void Draw()
+    {
+        using (ImRaii.PushColor(ImGuiCol.ChildBg, FCTrackerTheme.BackgroundSidebar))
+        {
+            using var sidebar = ImRaii.Child("##Sidebar", new Vector2(SidebarWidth, 0), true);
+            if (!sidebar.Success) return;
+
+            this.DrawSectionLabel("VIEWS");
+            this.DrawViewItem("All FCs", FontAwesomeIcon.List, "all", this.dataProvider.GetTotalCount());
+            this.DrawViewItem("Upcoming", FontAwesomeIcon.Clock, "upcoming", this.dataProvider.GetUpcomingCount(),
+                this.dataProvider.GetUpcomingCount() > 0 ? FCTrackerTheme.AccentYellow : (Vector4?)null);
+            this.DrawViewItem("Ready Now", FontAwesomeIcon.Check, "ready", this.dataProvider.GetReadyCount(),
+                this.dataProvider.GetReadyCount() > 0 ? FCTrackerTheme.AccentGreen : (Vector4?)null);
+
+            ImGui.Spacing();
+            ImGui.Separator();
+            ImGui.Spacing();
+
+            this.DrawSectionLabel("REGIONS");
+            this.DrawRegionsTree();
+        }
+    }
+
+    private void DrawSectionLabel(string label)
+    {
+        ImGui.SetCursorPos(new Vector2(12, ImGui.GetCursorPosY() + 4));
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, label);
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 4);
+    }
+
+    private void DrawViewItem(string label, FontAwesomeIcon icon, string viewId, int count, Vector4? countColor = null)
+    {
+        bool isActive = this.ActiveViewId == viewId && this.SelectedWorld == null && this.SelectedDatacenter == null && this.SelectedRegion == null;
+
+        ImGui.SetCursorPosX(0);
+
+        using (ImRaii.PushColor(ImGuiCol.Header, isActive ? FCTrackerTheme.BackgroundSelected : new Vector4(0, 0, 0, 0)))
+        using (ImRaii.PushColor(ImGuiCol.HeaderHovered, FCTrackerTheme.BackgroundHover))
+        using (ImRaii.PushColor(ImGuiCol.HeaderActive, FCTrackerTheme.BackgroundSelected))
+        {
+            if (ImGui.Selectable($"##{viewId}", isActive, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 22)))
+            {
+                this.ActiveViewId = viewId;
+                this.SelectedRegion = null;
+                this.SelectedDatacenter = null;
+                this.SelectedWorld = null;
+            }
+        }
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 22);
+
+        if (isActive) DrawActiveIndicator(22);
+
+        ImGui.SetCursorPosX(12);
+        FCTrackerWidgets.IconLabel(
+            isActive ? FCTrackerTheme.AccentBlue : FCTrackerTheme.TextSecondary,
+            icon, label,
+            isActive ? FCTrackerTheme.TextBright : FCTrackerTheme.TextPrimary);
+
+        ImGui.SameLine(SidebarWidth - 36);
+        DrawCountBadge(count, countColor ?? FCTrackerTheme.TextMuted);
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 4);
+    }
+
+    private void DrawRegionsTree()
+    {
+        Dictionary<string, List<string>> dcsByRegion = this.dataProvider.GetDatacentersByRegion();
+        Dictionary<string, List<string>> worldsByDc = this.dataProvider.GetWorldsByDatacenter();
+
+        foreach (string region in dcsByRegion.Keys.OrderBy(r => r == "NA" ? 0 : r == "EU" ? 1 : r == "JP" ? 2 : 3))
+        {
+            (int ready, int upcoming, int total) = this.dataProvider.GetStatusCountsForRegion(region);
+            if (total == 0) continue;
+            this.DrawRegion(region, dcsByRegion[region], worldsByDc, ready, upcoming, total);
+        }
+    }
+
+    private void DrawRegion(string region, List<string> dcs, Dictionary<string, List<string>> worldsByDc, int ready, int upcoming, int total)
+    {
+        bool isExpanded = this.regionExpandedState.GetValueOrDefault(region, true);
+        string regionName = GetRegionDisplayName(region);
+        FontAwesomeIcon regionIcon = GetRegionIcon(region);
+
+        ImGui.SetCursorPosX(0);
+
+        Vector4 bgColor = GetRegionBackgroundColor(region);
+        using (ImRaii.PushColor(ImGuiCol.Header, bgColor))
+        using (ImRaii.PushColor(ImGuiCol.HeaderHovered, FCTrackerTheme.BackgroundHover))
+        {
+            if (ImGui.Selectable($"##Region{region}", false, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 22)))
+            {
+                this.regionExpandedState[region] = !isExpanded;
+            }
+        }
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 22);
+
+        ImGui.SetCursorPosX(8);
+        FCTrackerWidgets.Icon(FCTrackerTheme.TextMuted, isExpanded ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight);
+
+        ImGui.SameLine(0, 6);
+        FCTrackerWidgets.Icon(FCTrackerTheme.TextSecondary, regionIcon);
+
+        ImGui.SameLine(0, 6);
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, regionName);
+
+        ImGui.SameLine(SidebarWidth - 50);
+        DrawStatusDot(ready, upcoming);
+
+        ImGui.SameLine(SidebarWidth - 36);
+        DrawCountBadge(total, FCTrackerTheme.TextMuted);
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2);
+
+        if (isExpanded)
+        {
+            foreach (string dc in dcs)
+            {
+                (int Ready, int Upcoming, int Total) dcStats = this.dataProvider.GetStatusCountsForDatacenter(dc);
+                if (dcStats.Total == 0) continue;
+                this.DrawDatacenter(dc, worldsByDc, dcStats.Ready, dcStats.Upcoming, dcStats.Total);
+            }
+        }
+    }
+
+    private void DrawDatacenter(string dc, Dictionary<string, List<string>> worldsByDc, int ready, int upcoming, int total)
+    {
+        bool isExpanded = this.dcExpandedState.GetValueOrDefault(dc, false);
+
+        ImGui.SetCursorPosX(0);
+
+        using (ImRaii.PushColor(ImGuiCol.Header, new Vector4(0, 0, 0, 0)))
+        using (ImRaii.PushColor(ImGuiCol.HeaderHovered, FCTrackerTheme.BackgroundHover))
+        {
+            if (ImGui.Selectable($"##DC{dc}", false, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 20)))
+            {
+                this.dcExpandedState[dc] = !isExpanded;
+            }
+        }
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 20);
+
+        ImGui.SetCursorPosX(20);
+        FCTrackerWidgets.Icon(FCTrackerTheme.TextMuted, isExpanded ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight);
+
+        ImGui.SameLine(0, 6);
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextSecondary, dc);
+
+        ImGui.SameLine(SidebarWidth - 50);
+        DrawStatusDot(ready, upcoming);
+
+        ImGui.SameLine(SidebarWidth - 36);
+        DrawCountBadge(total, FCTrackerTheme.TextMuted);
+
+        ImGui.SetCursorPosX(20);
+        DrawProgressBar(ready, upcoming, total);
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2);
+
+        if (isExpanded && worldsByDc.TryGetValue(dc, out List<string>? worlds))
+        {
+            foreach (string world in worlds)
+            {
+                (int Ready, int Upcoming, int Total) ws = this.dataProvider.GetStatusCountsForWorld(world);
+                if (ws.Total == 0) continue;
+                this.DrawWorld(world, ws.Ready, ws.Upcoming, ws.Total);
+            }
+        }
+    }
+
+    private void DrawWorld(string world, int ready, int upcoming, int total)
+    {
+        bool isActive = this.SelectedWorld == world;
+
+        ImGui.SetCursorPosX(0);
+
+        using (ImRaii.PushColor(ImGuiCol.Header, isActive ? FCTrackerTheme.BackgroundSelected : new Vector4(0, 0, 0, 0)))
+        using (ImRaii.PushColor(ImGuiCol.HeaderHovered, FCTrackerTheme.BackgroundHover))
+        using (ImRaii.PushColor(ImGuiCol.HeaderActive, FCTrackerTheme.BackgroundSelected))
+        {
+            if (ImGui.Selectable($"##{world}World", isActive, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 18)))
+            {
+                this.ActiveViewId = "all";
+                this.SelectedWorld = world;
+            }
+        }
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 18);
+
+        if (isActive) DrawActiveIndicator(18);
+
+        ImGui.SetCursorPosX(34);
+        DrawStatusDot(ready, upcoming, 3);
+
+        ImGui.SetCursorPosX(44);
+        FCTrackerWidgets.ColoredText(isActive ? FCTrackerTheme.TextBright : FCTrackerTheme.TextPrimary, world);
+
+        ImGui.SameLine(SidebarWidth - 36);
+        DrawCountBadge(total, FCTrackerTheme.TextMuted);
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2);
+    }
+
+    private static void DrawActiveIndicator(float height)
+    {
+        ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+        Vector2 windowPos = ImGui.GetWindowPos();
+        float cursorY = ImGui.GetCursorPosY();
+        drawList.AddRectFilled(
+            new Vector2(windowPos.X, windowPos.Y + cursorY),
+            new Vector2(windowPos.X + 3, windowPos.Y + cursorY + height),
+            ImGui.GetColorU32(FCTrackerTheme.AccentBlue)
+        );
+    }
+
+    private static void DrawStatusDot(int ready, int upcoming, float radius = 4)
+    {
+        Vector4 color;
+        if (ready > 0) color = FCTrackerTheme.AccentGreen;
+        else if (upcoming > 0) color = FCTrackerTheme.AccentYellow;
+        else return;
+
+        Vector2 screenPos = ImGui.GetCursorScreenPos();
+        ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+        drawList.AddCircleFilled(new Vector2(screenPos.X + radius, screenPos.Y + 7), radius, ImGui.GetColorU32(color));
+    }
+
+    private static void DrawCountBadge(int count, Vector4 color)
+    {
+        string text = count.ToString();
+        Vector2 textSize = ImGui.CalcTextSize(text);
+        const float padding = 4f;
+        float badgeWidth = Math.Max(textSize.X + padding * 2, 20);
+
+        Vector2 screenPos = ImGui.GetCursorScreenPos();
+        ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+
+        drawList.AddRectFilled(
+            screenPos,
+            new Vector2(screenPos.X + badgeWidth, screenPos.Y + 16),
+            ImGui.GetColorU32(new Vector4(color.X, color.Y, color.Z, 0.15f)),
+            8f
+        );
+
+        float textOffset = (badgeWidth - textSize.X) / 2;
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + textOffset);
+        FCTrackerWidgets.ColoredText(color, text);
+    }
+
+    private static void DrawProgressBar(int ready, int upcoming, int total)
+    {
+        if (total == 0) return;
+
+        int pending = total - ready - upcoming;
+        const float barWidth = SidebarWidth - 56;
+        const float barHeight = 3f;
+        Vector2 screenPos = ImGui.GetCursorScreenPos();
+        ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+
+        drawList.AddRectFilled(
+            screenPos,
+            new Vector2(screenPos.X + barWidth, screenPos.Y + barHeight),
+            ImGui.GetColorU32(FCTrackerTheme.BackgroundLight),
+            2f
+        );
+
+        float xOffset = 0f;
+
+        if (ready > 0)
+        {
+            float w = (float)ready / total * barWidth;
+            drawList.AddRectFilled(
+                new Vector2(screenPos.X + xOffset, screenPos.Y),
+                new Vector2(screenPos.X + xOffset + w, screenPos.Y + barHeight),
+                ImGui.GetColorU32(FCTrackerTheme.AccentGreen), 2f);
+            xOffset += w;
+        }
+
+        if (upcoming > 0)
+        {
+            float w = (float)upcoming / total * barWidth;
+            drawList.AddRectFilled(
+                new Vector2(screenPos.X + xOffset, screenPos.Y),
+                new Vector2(screenPos.X + xOffset + w, screenPos.Y + barHeight),
+                ImGui.GetColorU32(FCTrackerTheme.AccentYellow), 2f);
+            xOffset += w;
+        }
+
+        if (pending > 0)
+        {
+            float w = (float)pending / total * barWidth;
+            drawList.AddRectFilled(
+                new Vector2(screenPos.X + xOffset, screenPos.Y),
+                new Vector2(screenPos.X + xOffset + w, screenPos.Y + barHeight),
+                ImGui.GetColorU32(FCTrackerTheme.AccentOrange), 2f);
+        }
+
+        ImGui.Dummy(new Vector2(barWidth, barHeight));
+    }
+
+    private static string GetRegionDisplayName(string region) => region switch
+    {
+        "NA" => "North America",
+        "EU" => "Europe",
+        "JP" => "Japan",
+        "OCE" => "Oceania",
+        _ => region
+    };
+
+    private static FontAwesomeIcon GetRegionIcon(string region) => region switch
+    {
+        "NA" => FontAwesomeIcon.GlobeAmericas,
+        "EU" => FontAwesomeIcon.GlobeEurope,
+        "JP" => FontAwesomeIcon.Sun,
+        "OCE" => FontAwesomeIcon.Water,
+        _ => FontAwesomeIcon.Globe
+    };
+
+    private static Vector4 GetRegionBackgroundColor(string region) => region switch
+    {
+        "NA" => new Vector4(0.2f, 0.4f, 0.8f, 0.08f),
+        "EU" => new Vector4(0.8f, 0.6f, 0.2f, 0.08f),
+        "JP" => new Vector4(0.8f, 0.3f, 0.3f, 0.08f),
+        "OCE" => new Vector4(0.3f, 0.7f, 0.5f, 0.08f),
+        _ => new Vector4(0, 0, 0, 0)
+    };
+
+    public void ClearSelection() => this.SelectedWorld = null;
+
+    public void SetView(string viewId)
+    {
+        this.ActiveViewId = viewId;
+        this.SelectedWorld = null;
+    }
+}

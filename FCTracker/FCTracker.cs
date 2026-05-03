@@ -21,6 +21,8 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.GameHelpers;
+using FCTracker.Services;
+using FCTracker.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
@@ -29,9 +31,9 @@ using InteropGenerator.Runtime;
 using Callback = ECommons.Automation.Callback;
 
 [UsedImplicitly]
-public sealed class FCTracker : IDalamudPlugin
+public sealed class FCTrackerPlugin : IDalamudPlugin
 {
-    public static FCTracker Plugin { get; private set; } = null!;
+    public static FCTrackerPlugin Plugin { get; private set; } = null!;
 
     [PluginService]
     internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
@@ -39,7 +41,8 @@ public sealed class FCTracker : IDalamudPlugin
     private const string CommandName = "/fctrack";
 
     public readonly WindowSystem windowSystem = new("FCTracker");
-    private         MainWindow   MainWindow { get; init; } = null!;
+    private         FCTrackerWindow MainWindow { get; init; } = null!;
+    public          IFCDataProvider DataProvider { get; init; } = null!;
 
     private readonly (string[], string, Action<string[]>)[] commands = null!;
 
@@ -47,7 +50,7 @@ public sealed class FCTracker : IDalamudPlugin
 
     public int Version { get; init; }
 
-    public FCTracker()
+    public FCTrackerPlugin()
     {
         try
         {
@@ -74,7 +77,8 @@ public sealed class FCTracker : IDalamudPlugin
             if (!configDirectory.Exists)
                 configDirectory.Create();
             
-            this.MainWindow = new MainWindow();
+            this.DataProvider = new ConfigurationFCDataService();
+            this.MainWindow = new FCTrackerWindow(this.DataProvider);
             this.windowSystem.AddWindow(this.MainWindow);
 
 

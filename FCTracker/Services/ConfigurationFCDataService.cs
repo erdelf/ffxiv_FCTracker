@@ -1,0 +1,78 @@
+namespace FCTracker.Services;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class ConfigurationFCDataService : IFCDataProvider
+{
+    private static IEnumerable<FCData> Source => Configuration.Instance?.AllFCData ?? Enumerable.Empty<FCData>();
+
+    public IReadOnlyList<FCData> GetAllFCs() => Source.ToList();
+
+    public IReadOnlyList<FCData> GetEligibleFCs() =>
+        Source.Where(fc => fc.IsEligible).ToList();
+
+    public IReadOnlyList<FCData> GetUpcomingFCs() =>
+        Source.Where(fc => !fc.IsEligible && !fc.HasHouse)
+              .OrderBy(fc => fc.EligibilityDate)
+              .ToList();
+
+    public IReadOnlyList<FCData> GetOwnedHousingFCs() =>
+        Source.Where(fc => fc.HasHouse).ToList();
+
+    public int GetTotalCount() => Source.Count();
+    public int GetReadyCount() => Source.Count(fc => fc.IsEligible);
+    public int GetUpcomingCount() => Source.Count(fc => !fc.IsEligible && !fc.HasHouse);
+    public int GetPending7DayCount() => Source.Count(fc => !fc.IsEligible && !fc.HasHouse && fc.DaysUntilEligible <= 7 && fc.DaysUntilEligible > 0);
+    public int GetPending30DayCount() => Source.Count(fc => !fc.IsEligible && !fc.HasHouse && fc.DaysUntilEligible > 7 && fc.DaysUntilEligible <= 30);
+
+    public IEnumerable<string> GetRegions() =>
+        Source.Select(fc => fc.Region).Where(s => !string.IsNullOrEmpty(s)).Distinct().OrderBy(r => r);
+
+    public IEnumerable<string> GetDatacenters() =>
+        Source.Select(fc => fc.Datacenter).Where(s => !string.IsNullOrEmpty(s)).Distinct().OrderBy(d => d);
+
+    public IEnumerable<string> GetWorlds() =>
+        Source.Select(fc => fc.WorldName).Where(s => !string.IsNullOrEmpty(s)).Distinct().OrderBy(w => w);
+
+    public Dictionary<string, List<string>> GetDatacentersByRegion() =>
+        Source.Where(fc => !string.IsNullOrEmpty(fc.Region) && !string.IsNullOrEmpty(fc.Datacenter))
+              .GroupBy(fc => fc.Region)
+              .ToDictionary(
+                  g => g.Key,
+                  g => g.Select(fc => fc.Datacenter).Distinct().OrderBy(d => d).ToList());
+
+    public Dictionary<string, List<string>> GetWorldsByDatacenter() =>
+        Source.Where(fc => !string.IsNullOrEmpty(fc.Datacenter) && !string.IsNullOrEmpty(fc.WorldName))
+              .GroupBy(fc => fc.Datacenter)
+              .ToDictionary(
+                  g => g.Key,
+                  g => g.Select(fc => fc.WorldName).Distinct().OrderBy(w => w).ToList());
+
+    public int GetFCCountForWorld(string world) =>
+        Source.Count(fc => string.Equals(fc.WorldName, world, StringComparison.OrdinalIgnoreCase));
+
+    public int GetFCCountForDatacenter(string datacenter) =>
+        Source.Count(fc => string.Equals(fc.Datacenter, datacenter, StringComparison.OrdinalIgnoreCase));
+
+    public int GetFCCountForRegion(string region) =>
+        Source.Count(fc => string.Equals(fc.Region, region, StringComparison.OrdinalIgnoreCase));
+
+    public (int Ready, int Upcoming, int Total) GetStatusCountsForWorld(string world) =>
+        ComputeStatusCounts(Source.Where(fc => string.Equals(fc.WorldName, world, StringComparison.OrdinalIgnoreCase)));
+
+    public (int Ready, int Upcoming, int Total) GetStatusCountsForDatacenter(string datacenter) =>
+        ComputeStatusCounts(Source.Where(fc => string.Equals(fc.Datacenter, datacenter, StringComparison.OrdinalIgnoreCase)));
+
+    public (int Ready, int Upcoming, int Total) GetStatusCountsForRegion(string region) =>
+        ComputeStatusCounts(Source.Where(fc => string.Equals(fc.Region, region, StringComparison.OrdinalIgnoreCase)));
+
+    private static (int Ready, int Upcoming, int Total) ComputeStatusCounts(IEnumerable<FCData> fcs)
+    {
+        List<FCData> list = fcs.ToList();
+        int ready = list.Count(fc => fc.IsEligible);
+        int upcoming = list.Count(fc => !fc.IsEligible && !fc.HasHouse && fc.DaysUntilEligible <= 7);
+        return (ready, upcoming, list.Count);
+    }
+}
