@@ -108,31 +108,46 @@ public class FCTrackerSidebar
     private void DrawRegion(string region, List<string> dcs, Dictionary<string, List<string>> worldsByDc, int ready, int upcoming, int total)
     {
         bool isExpanded = this.regionExpandedState.GetValueOrDefault(region, true);
+        bool isActive = this.SelectedRegion == region && this.SelectedDatacenter == null && this.SelectedWorld == null;
         string regionName = GetRegionDisplayName(region);
         FontAwesomeIcon regionIcon = GetRegionIcon(region);
 
         ImGui.SetCursorPosX(0);
 
-        Vector4 bgColor = GetRegionBackgroundColor(region);
+        Vector4 bgColor = isActive ? FCTrackerTheme.BackgroundSelected : GetRegionBackgroundColor(region);
         using (ImRaii.PushColor(ImGuiCol.Header, bgColor))
         using (ImRaii.PushColor(ImGuiCol.HeaderHovered, FCTrackerTheme.BackgroundHover))
+        using (ImRaii.PushColor(ImGuiCol.HeaderActive, FCTrackerTheme.BackgroundSelected))
         {
-            if (ImGui.Selectable($"##Region{region}", false, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 22)))
+            if (ImGui.Selectable($"##Region{region}", isActive, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 22)))
             {
-                this.regionExpandedState[region] = !isExpanded;
+                if (isActive)
+                {
+                    this.regionExpandedState[region] = !isExpanded;
+                }
+                else
+                {
+                    this.ActiveViewId = "all";
+                    this.SelectedRegion = region;
+                    this.SelectedDatacenter = null;
+                    this.SelectedWorld = null;
+                    this.regionExpandedState[region] = true;
+                }
             }
         }
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 22);
 
+        if (isActive) DrawActiveIndicator(22);
+
         ImGui.SetCursorPosX(8);
         FCTrackerWidgets.Icon(FCTrackerTheme.TextMuted, isExpanded ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight);
 
         ImGui.SameLine(0, 6);
-        FCTrackerWidgets.Icon(FCTrackerTheme.TextSecondary, regionIcon);
+        FCTrackerWidgets.Icon(isActive ? FCTrackerTheme.AccentBlue : FCTrackerTheme.TextSecondary, regionIcon);
 
         ImGui.SameLine(0, 6);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, regionName);
+        FCTrackerWidgets.ColoredText(isActive ? FCTrackerTheme.TextBright : FCTrackerTheme.TextPrimary, regionName);
 
         ImGui.SameLine(SidebarWidth - 50);
         DrawStatusDot(ready, upcoming);
@@ -156,25 +171,40 @@ public class FCTrackerSidebar
     private void DrawDatacenter(string dc, Dictionary<string, List<string>> worldsByDc, int ready, int upcoming, int total)
     {
         bool isExpanded = this.dcExpandedState.GetValueOrDefault(dc, false);
+        bool isActive = this.SelectedDatacenter == dc && this.SelectedWorld == null;
 
         ImGui.SetCursorPosX(0);
 
-        using (ImRaii.PushColor(ImGuiCol.Header, new Vector4(0, 0, 0, 0)))
+        using (ImRaii.PushColor(ImGuiCol.Header, isActive ? FCTrackerTheme.BackgroundSelected : new Vector4(0, 0, 0, 0)))
         using (ImRaii.PushColor(ImGuiCol.HeaderHovered, FCTrackerTheme.BackgroundHover))
+        using (ImRaii.PushColor(ImGuiCol.HeaderActive, FCTrackerTheme.BackgroundSelected))
         {
-            if (ImGui.Selectable($"##DC{dc}", false, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 20)))
+            if (ImGui.Selectable($"##DC{dc}", isActive, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 20)))
             {
-                this.dcExpandedState[dc] = !isExpanded;
+                if (isActive)
+                {
+                    this.dcExpandedState[dc] = !isExpanded;
+                }
+                else
+                {
+                    this.ActiveViewId = "all";
+                    this.SelectedRegion = null;
+                    this.SelectedDatacenter = dc;
+                    this.SelectedWorld = null;
+                    this.dcExpandedState[dc] = true;
+                }
             }
         }
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 20);
 
+        if (isActive) DrawActiveIndicator(20);
+
         ImGui.SetCursorPosX(20);
         FCTrackerWidgets.Icon(FCTrackerTheme.TextMuted, isExpanded ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight);
 
         ImGui.SameLine(0, 6);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextSecondary, dc);
+        FCTrackerWidgets.ColoredText(isActive ? FCTrackerTheme.TextBright : FCTrackerTheme.TextSecondary, dc);
 
         ImGui.SameLine(SidebarWidth - 50);
         DrawStatusDot(ready, upcoming);
@@ -355,11 +385,18 @@ public class FCTrackerSidebar
         _ => new Vector4(0, 0, 0, 0)
     };
 
-    public void ClearSelection() => this.SelectedWorld = null;
+    public void ClearSelection()
+    {
+        this.SelectedRegion = null;
+        this.SelectedDatacenter = null;
+        this.SelectedWorld = null;
+    }
 
     public void SetView(string viewId)
     {
         this.ActiveViewId = viewId;
+        this.SelectedRegion = null;
+        this.SelectedDatacenter = null;
         this.SelectedWorld = null;
     }
 }

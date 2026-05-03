@@ -76,7 +76,7 @@ public class ReadyNowView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentGreen, "READY");
 
         ImGui.TableNextColumn();
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, $"«{fc.Tag}»");
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, fc.Tag);
         ImGui.SameLine(0, 6);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, fc.FCName);
         ImGui.SameLine(0, 10);

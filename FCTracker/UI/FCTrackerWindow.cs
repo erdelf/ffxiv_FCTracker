@@ -38,6 +38,14 @@ public class FCTrackerWindow : Window, IDisposable
 
         this.Size = new Vector2(1000, 700);
         this.SizeCondition = ImGuiCond.FirstUseEver;
+
+        this.TitleBarButtons.Add(new TitleBarButton
+        {
+            Icon = FontAwesomeIcon.Cog,
+            IconOffset = new Vector2(2, 1),
+            Click = _ => FCTrackerPlugin.Plugin.ToggleConfigUi(),
+            ShowTooltip = () => ImGui.SetTooltip("Open settings"),
+        });
     }
 
     private void RegisterView(IFCView view) => this.views[view.Id] = view;

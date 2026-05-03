@@ -133,7 +133,7 @@ public class AllFCsView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetRankColor(fc.Rank), $"{fc.Rank}");
 
         ImGui.SameLine(0, 8);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, $"«{fc.Tag}»");
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, fc.Tag);
 
         ImGui.SameLine(0, 6);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, fc.FCName);

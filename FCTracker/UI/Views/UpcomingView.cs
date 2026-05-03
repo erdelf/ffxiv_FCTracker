@@ -144,7 +144,7 @@ public class UpcomingView : IFCView
         FCTrackerWidgets.ColoredText(dotColor, daysLeft <= 1 ? "1d" : $"{daysLeft}d");
 
         ImGui.TableNextColumn();
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, $"«{fc.Tag}»");
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, fc.Tag);
         ImGui.SameLine(0, 6);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, fc.FCName);
         ImGui.SameLine(0, 10);

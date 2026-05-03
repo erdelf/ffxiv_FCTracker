@@ -18,6 +18,14 @@ public class FCViewContext
         {
             fcs = fcs.Where(fc => fc.WorldName == this.Sidebar.SelectedWorld);
         }
+        else if (!string.IsNullOrEmpty(this.Sidebar.SelectedDatacenter))
+        {
+            fcs = fcs.Where(fc => fc.Datacenter == this.Sidebar.SelectedDatacenter);
+        }
+        else if (!string.IsNullOrEmpty(this.Sidebar.SelectedRegion))
+        {
+            fcs = fcs.Where(fc => fc.Region == this.Sidebar.SelectedRegion);
+        }
 
         if (!string.IsNullOrEmpty(this.SearchText))
         {

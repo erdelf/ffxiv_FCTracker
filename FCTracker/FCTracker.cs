@@ -42,6 +42,7 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
 
     public readonly WindowSystem windowSystem = new("FCTracker");
     private         FCTrackerWindow MainWindow { get; init; } = null!;
+    private         ConfigWindow    ConfigWindow { get; init; } = null!;
     public          IFCDataProvider DataProvider { get; init; } = null!;
 
     private readonly (string[], string, Action<string[]>)[] commands = null!;
@@ -79,7 +80,9 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
             
             this.DataProvider = new ConfigurationFCDataService();
             this.MainWindow = new FCTrackerWindow(this.DataProvider);
+            this.ConfigWindow = new ConfigWindow();
             this.windowSystem.AddWindow(this.MainWindow);
+            this.windowSystem.AddWindow(this.ConfigWindow);
 
 
             this.TaskManager = new TaskManager(new TaskManagerConfiguration
@@ -127,7 +130,7 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
 
         this.windowSystem.RemoveAllWindows();
 
-        //this.ConfigWindow.Dispose();
+        this.ConfigWindow.Dispose();
         this.MainWindow.Dispose();
 
         Svc.Commands.RemoveHandler(CommandName);
@@ -239,6 +242,6 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
         this.TaskManager.Enqueue(() => AgentHousingSignboard.Instance()->Hide());
     }
 
-    public void ToggleConfigUi() { } // this.ConfigWindow.Toggle();
+    public void ToggleConfigUi() => this.ConfigWindow.Toggle();
     public void ToggleMainUi() => this.MainWindow.Toggle();
 }
