@@ -9,23 +9,19 @@ using ECommons.Configuration;
 using ECommons.DalamudServices;
 using JetBrains.Annotations;
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Windows;
-using Dalamud.Bindings.ImGui;
-using Dalamud.Game.NativeWrapper;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.GameHelpers;
-using FCTracker.Services;
-using FCTracker.UI;
+using Services;
+using UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using InteropGenerator.Runtime;
 using Callback = ECommons.Automation.Callback;
@@ -58,13 +54,6 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
             Plugin = this;
 
             ECommonsMain.Init(PluginInterface, this, Module.DalamudReflector, Module.ObjectFunctions);
-
-
-
-            /*
-            EzConfig.DefaultSerializationFactory = new AutoDutySerializationFactory();
-            LocalizationManager.Initialize();
-            */
 
             EzConfig.DefaultSerializationFactory = new FCTrackerSerializationFactory();
             Configuration.Instance               = EzConfig.Init<Configuration>();
@@ -207,39 +196,8 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                                      }
                                      return false;
                                  });
-        this.TaskManager.Enqueue(() =>
-                                 {
-                                     if (GenericHelpers.TryGetAddonByName("FreeCompanyStatus", out AtkUnitBase* fcAddon) && fcAddon->IsReady())
-                                     {
-                                         StringArrayData* arrayData = RaptureAtkModule.Instance()->GetStringArrayData(49);
-                                         if (arrayData->Size > 71)
-                                         {
-                                             CStringPointer x        = arrayData->StringArray[72];
-                                             SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
-                                             string         text     = seString.GetText();
-
-                                             if (text.Length > 0)
-                                                 this.TaskManager.InsertMulti(
-                                                      new TaskManagerTask(() => Callback.Fire(fcAddon, true, 2), "Open HousingBoard"),
-                                                      new TaskManagerTask(() =>
-                                                                          {
-                                                                              if (!GenericHelpers.TryGetAddonByName("HousingSignBoard", out AtkUnitBase* signboardAddon) || !signboardAddon->IsReady())
-                                                                                  return false;
-                                                                              arrayData = RaptureAtkModule.Instance()->GetStringArrayData(64);
-                                                                              if (arrayData == null || arrayData->Size < 2)
-                                                                                  return false;
-                                                                              CStringPointer pointer = arrayData->StringArray[3];
-                                                                              return pointer is { HasValue: true, Length: > 0 };
-                                                                          }, "Housing Signboard data check")
-                                                     );
-                                         }
-                                         return true;
-                                     }
-                                     return false;
-                                 });
         this.TaskManager.Enqueue(() => Configuration.Instance.UpdateFCData());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Hide());
-        this.TaskManager.Enqueue(() => AgentHousingSignboard.Instance()->Hide());
     }
 
     public void ToggleConfigUi() => this.ConfigWindow.Toggle();

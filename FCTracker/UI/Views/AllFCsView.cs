@@ -6,6 +6,8 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
+using ECommons.DalamudServices;
+using ECommons.IPC;
 
 public class AllFCsView : IFCView
 {
@@ -130,6 +132,9 @@ public class AllFCsView : IFCView
 
     private static void DrawFCNameCell(FCData fc)
     {
+        ImGui.Selectable("##FCNameCell" + fc.Id);
+        ImGui.SetItemAllowOverlap();
+        ImGui.SameLine(0, 0);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetRankColor(fc.Rank), $"{fc.Rank}");
 
         ImGui.SameLine(0, 8);
@@ -137,10 +142,22 @@ public class AllFCsView : IFCView
 
         ImGui.SameLine(0, 6);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, fc.FCName);
+
+        if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
+            ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterString, fc.WorldName);
     }
 
     private static void DrawStatusCell(FCData fc)
     {
+        bool clickable = Svc.ClientState.IsLoggedIn && fc.HasHouse;
+
+        if (clickable)
+        {
+            ImGui.Selectable("##FCStatusCell" + fc.Id);
+            ImGui.SetItemAllowOverlap();
+            ImGui.SameLine(0, 0);
+        }
+
         Vector4 color = FCTrackerTheme.GetStatusColor(fc.GetStatusCategory());
 
         Vector2 cursorPos = ImGui.GetCursorScreenPos();
@@ -152,6 +169,10 @@ public class AllFCsView : IFCView
         );
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 14);
+
         FCTrackerWidgets.ColoredText(color, fc.GetHousingStatusText());
+
+        if (clickable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
+            ECommonsIPC.Lifestream.GoToHousingAddress(($"{fc.WorldName}-{fc.Id}", (int) fc.HomeWorldId, (int)fc.House.Value.City, fc.House.Value.Ward+1, 0, fc.House.Value.Plot+1, -1, false, false, string.Empty));
     }
 }

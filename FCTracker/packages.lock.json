@@ -16,9 +16,9 @@
       },
       "ECommons": {
         "type": "Direct",
-        "requested": "[3.2.0.3, )",
-        "resolved": "3.2.0.3",
-        "contentHash": "fDJHOQygG7a4ZAAPogR1Lqj0tCL8oXl18rCYGYXyx5183SHwW5zhYWd3TtmUhn+p5z+M9+LeeXN/HvQAKHhJww=="
+        "requested": "[3.2.0.16, )",
+        "resolved": "3.2.0.16",
+        "contentHash": "nbWQqETgnryEWedkZSxNValCgTdylNOibwkaYNYvGoY7XBXWK1KzKVgAroPQpGGrF2Q3NX1mbhoDczAaePYc8w=="
       },
       "JetBrains.Annotations": {
         "type": "Direct",
@@ -26,10 +26,10 @@
         "resolved": "2025.2.4",
         "contentHash": "TwbgxAkXxY+vNEhNVx/QXjJ4vqxmepOjsgRvvImQPbHkHMMb4W+ahL3laMsxXKtNT7iMy+E1B3xkqao2hf1n3A=="
       },
-      "nightmareui": {
+      "ecommons.ipc": {
         "type": "Project",
         "dependencies": {
-          "ECommons": "[3.1.0.34, )"
+          "ECommons": "[3.2.0.11, )"
         }
       }
     }

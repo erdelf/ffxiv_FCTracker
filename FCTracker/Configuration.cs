@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using ECommons.ExcelServices;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.Sheets;
 using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
 
@@ -72,20 +73,23 @@ public class Configuration
         {
             CStringPointer x        = arrayData->StringArray[2];
             SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
+
             fcData.Tag = seString.GetText();
         }
 
-
-        arrayData = RaptureAtkModule.Instance()->GetStringArrayData(64);
-        if (arrayData->Size > 2)
+        HouseId houseId = HousingManager.GetOwnedHouseId(EstateType.FreeCompanyEstate);
+        if (houseId.Unit.Value < 255)
         {
-            CStringPointer x        = arrayData->StringArray[3];
-            SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
-            fcData.HouseTemp = seString.GetText();
+            FCData.HouseInfo houseInfo = default;
+            houseInfo.Ward = houseId.WardIndex;
+            houseInfo.Plot = houseId.Unit.PlotIndex;
+            FCData.HouseInfo.ResidentialAetheryteKind? residentialAetheryteKind = FCTracker.FCData.HouseInfo.GetResidentialAetheryteByTerritoryType(houseId.TerritoryTypeId);
+            if (residentialAetheryteKind != null)
+                houseInfo.City = residentialAetheryteKind.Value;
+            fcData.House = houseInfo;
         }
 
-
-        fcData.FCName   = fcProxy->NameString;
+        fcData.FCName       = fcProxy->NameString;
         fcData.TotalMembers = fcProxy->TotalMembers;
         fcData.MasterString = fcProxy->MasterString;
         fcData.Rank         = fcProxy->Rank;
@@ -137,7 +141,38 @@ public class FCData
     public GrandCompany GrandCompany { get; set; }
     public uint         Rank         { get; set; } // 6 needed for Housing
     public DateTime     FoundingDate { get; set; } // 30 days needed for Housing
-    public string HouseTemp { get; set; } = string.Empty;
+
+    [JsonObject(MemberSerialization.OptOut)]
+    public struct HouseInfo
+    {
+        // From lifestream
+        public enum ResidentialAetheryteKind
+        {
+            Goblet       = 9,
+            LavenderBeds = 2,
+            Limsa        = 8,
+            Foundation   = 70,
+            Shirogane    = 111,
+        }
+
+        public static ResidentialAetheryteKind? GetResidentialAetheryteByTerritoryType(uint territoryType)
+        {
+            var t = Svc.Data.GetExcelSheet<TerritoryType>().GetRowOrDefault(territoryType);
+            if (t                             == null) return null;
+            if (t.Value.PlaceNameRegion.RowId == 2402) return ResidentialAetheryteKind.Shirogane;
+            if (t.Value.PlaceNameRegion.RowId == 25) return ResidentialAetheryteKind.Foundation;
+            if (t.Value.PlaceNameRegion.RowId == 23) return ResidentialAetheryteKind.LavenderBeds;
+            if (t.Value.PlaceNameRegion.RowId == 24) return ResidentialAetheryteKind.Goblet;
+            if (t.Value.PlaceNameRegion.RowId == 22) return ResidentialAetheryteKind.Limsa;
+            return null;
+        }
+
+        public ResidentialAetheryteKind City { get; set; }
+        public byte Ward { get; set; }
+        public byte Plot { get; set; }
+    }
+
+    public HouseInfo? House { get; set; }
 
     [JsonIgnore]
     public string WorldName => this.World?.Name.ToString() ?? "??";
@@ -163,10 +198,14 @@ public class FCData
     }
 
     [JsonIgnore]
-    public bool HasHouse => !string.IsNullOrWhiteSpace(this.HouseTemp);
+    public bool HasHouse => 
+        this.House != null;
 
     [JsonIgnore]
-    public int DaysSinceFounded => this.FoundingDate == default ? 0 : (int)(DateTime.Now - this.FoundingDate).TotalDays;
+    public int DaysSinceFounded => 
+        this.FoundingDate == default ? 
+            0 : 
+            (int)(DateTime.Now - this.FoundingDate).TotalDays;
 
     [JsonIgnore]
     public int DaysUntilEligible
@@ -179,23 +218,26 @@ public class FCData
     }
 
     [JsonIgnore]
-    public bool IsEligible => this.DaysSinceFounded >= 30 && this.Rank >= 6 && !this.HasHouse;
+    public bool IsEligible => 
+        this.DaysSinceFounded >= 30 && this.Rank >= 6 && !this.HasHouse;
 
     [JsonIgnore]
-    public DateTime EligibilityDate => this.FoundingDate == default ? DateTime.Now : this.FoundingDate.AddDays(30);
+    public DateTime EligibilityDate => 
+        this.FoundingDate == default ? DateTime.Now : this.FoundingDate.AddDays(30);
 
-    public HousingStatusCategory GetStatusCategory()
-    {
-        if (this.HasHouse) return HousingStatusCategory.Owned;
-        if (this.IsEligible) return HousingStatusCategory.Ready;
-        if (this.DaysUntilEligible <= 7) return HousingStatusCategory.Soon;
-        return HousingStatusCategory.Waiting;
-    }
+    public HousingStatusCategory GetStatusCategory() => 
+        this.HasHouse ? 
+            HousingStatusCategory.Owned : 
+            this.IsEligible ? 
+                HousingStatusCategory.Ready : 
+                this.DaysUntilEligible <= 7 ? 
+                    HousingStatusCategory.Soon : 
+                    HousingStatusCategory.Waiting;
 
-    public string GetHousingStatusText()
-    {
-        if (this.HasHouse) return this.HouseTemp;
-        if (this.IsEligible) return "Eligible";
-        return $"{this.DaysUntilEligible}d left";
-    }
+    public string GetHousingStatusText() => 
+        this.HasHouse ? 
+            $"{this.House?.City} - Ward {this.House?.Ward + 1} - Plot {this.House?.Plot + 1}" : 
+            this.IsEligible ?
+                "Eligible" : 
+                $"{this.DaysUntilEligible}d left";
 }

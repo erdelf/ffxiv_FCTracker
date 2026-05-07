@@ -121,16 +121,15 @@ public class UpcomingView : IFCView
     private static void DrawItem(FCData fc)
     {
         int daysLeft = fc.DaysUntilEligible;
-        HousingStatusCategory category = daysLeft <= 3 ? HousingStatusCategory.Ready :
-                                          daysLeft <= 7 ? HousingStatusCategory.Soon : HousingStatusCategory.Waiting;
+        HousingStatusCategory category = daysLeft <= 3 ? HousingStatusCategory.Ready : 
+                                         daysLeft <= 7 ? HousingStatusCategory.Soon : 
+                                                         HousingStatusCategory.Waiting;
         Vector4 dotColor = FCTrackerTheme.GetStatusColor(category);
 
         ImGui.TableNextRow();
 
         if (daysLeft <= 3)
-        {
             ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FCTrackerTheme.AccentYellowDim));
-        }
 
         ImGui.TableNextColumn();
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextSecondary, fc.EligibilityDate.ToString("MMM dd"));

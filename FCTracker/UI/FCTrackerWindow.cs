@@ -78,9 +78,7 @@ public class FCTrackerWindow : Window, IDisposable
     {
         ImGui.SetNextItemWidth(150);
         using (ImRaii.PushColor(ImGuiCol.FrameBg, FCTrackerTheme.BackgroundCard))
-        {
             ImGui.InputTextWithHint("##Search", "Search...", ref this.searchText, 256);
-        }
 
         ImGui.SameLine();
 
@@ -89,19 +87,15 @@ public class FCTrackerWindow : Window, IDisposable
             using (ImRaii.PushColor(ImGuiCol.Button, FCTrackerTheme.AccentBlueDim))
             using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.AccentBlue))
             using (ImRaii.PushFont(UiBuilder.IconFont))
-            {
                 if (ImGui.Button(FontAwesomeIcon.SyncAlt.ToIconString(), new Vector2(28, 0)))
-                {
                     FCTrackerPlugin.Plugin.GetFCInfo();
-                }
-            }
         }
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Refresh current character");
 
         ImGui.SameLine();
 
-        using (ImRaii.PushColor(ImGuiCol.Button, new Vector4(FCTrackerTheme.AccentRed.X, FCTrackerTheme.AccentRed.Y, FCTrackerTheme.AccentRed.Z, 0.15f)))
+        using (ImRaii.PushColor(ImGuiCol.Button, FCTrackerTheme.AccentRed with { W = 0.15f }))
         using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.AccentRed))
         using (ImRaii.PushFont(UiBuilder.IconFont))
         {
