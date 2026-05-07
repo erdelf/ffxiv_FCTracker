@@ -1,12 +1,14 @@
 namespace FCTracker.Windows;
 
-using System;
-using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using FCTracker.UI;
+using FFXIVClientStructs.FFXIV.Client.System.Input;
+using System;
+using System.Numerics;
+using NightmareUI.Censoring;
 
 public class ConfigWindow : Window, IDisposable
 {
@@ -37,6 +39,9 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SetCursorPos(new Vector2(14, 12));
             FCTrackerWidgets.IconLabel(FCTrackerTheme.TextSecondary, FontAwesomeIcon.Cogs,
                 "No settings yet — coming soon.");
+
+            ImGui.SetCursorPosX(14);
+            ImGui.Checkbox("Scramble Names", ref Censor.Config.Enabled);
         }
     }
 

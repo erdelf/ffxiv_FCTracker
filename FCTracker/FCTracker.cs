@@ -196,7 +196,7 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                                      }
                                      return false;
                                  });
-        this.TaskManager.Enqueue(() => Configuration.Instance.UpdateFCData());
+        this.TaskManager.Enqueue(() => Configuration.Instance.UpdateCurrentFCData());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Hide());
     }
 

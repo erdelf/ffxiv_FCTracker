@@ -39,7 +39,14 @@ public class Configuration
     
     public void ClearData() => this.FCData.Clear();
 
-    public unsafe void UpdateFCData()
+    public void RemoveCurrentFCData()
+    {
+        if(Player.Available)
+            if(this.CIDToFCId.TryGetValue(Player.CID, out ulong fcId))
+                this.FCData.Remove(fcId);
+    }
+
+    public unsafe void UpdateCurrentFCData()
     {
         InfoProxyFreeCompany* fcProxy = InfoProxyFreeCompany.Instance();
 
@@ -99,8 +106,6 @@ public class Configuration
 
         this.Save();
     }
-
-    public FCData? Data { get; set; }
 
     public void Save()
     {

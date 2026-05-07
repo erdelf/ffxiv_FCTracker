@@ -8,6 +8,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.DalamudServices;
 using ECommons.IPC;
+using NightmareUI.Censoring;
 
 public class AllFCsView : IFCView
 {
@@ -45,7 +46,8 @@ public class AllFCsView : IFCView
                                       ImGuiTableFlags.Resizable;
 
         using var table = ImRaii.Table("##FCTable", 6, flags);
-        if (!table.Success) return;
+        if (!table.Success) 
+            return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("Free Company", ImGuiTableColumnFlags.WidthFixed, 260);
@@ -83,7 +85,7 @@ public class AllFCsView : IFCView
         ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FCTrackerTheme.BackgroundSidebar));
 
         ImGui.TableNextColumn();
-        FCTrackerWidgets.IconLabel(FCTrackerTheme.TextPrimary, FontAwesomeIcon.Globe, fc.WorldName);
+        FCTrackerWidgets.IconLabel(FCTrackerTheme.TextPrimary, FontAwesomeIcon.Globe, Censor.World(fc.WorldName));
 
         if (!string.IsNullOrEmpty(fc.Datacenter))
         {
@@ -106,15 +108,13 @@ public class AllFCsView : IFCView
         ImGui.TableNextRow();
 
         if (fc.GetStatusCategory() == HousingStatusCategory.Ready)
-        {
             ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FCTrackerTheme.AccentGreenDim));
-        }
 
         ImGui.TableNextColumn();
         DrawFCNameCell(fc);
 
         ImGui.TableNextColumn();
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextSecondary, fc.MasterString);
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextSecondary,  Censor.Character(fc.MasterString));
 
         ImGui.TableNextColumn();
         Vector4 memberColor = fc.TotalMembers <= 1 ? FCTrackerTheme.TextMuted :
@@ -130,6 +130,8 @@ public class AllFCsView : IFCView
         ImGui.TableNextColumn();
     }
 
+    private const string ScrambleTag = "« »";
+
     private static void DrawFCNameCell(FCData fc)
     {
         ImGui.Selectable("##FCNameCell" + fc.Id);
@@ -138,10 +140,10 @@ public class AllFCsView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetRankColor(fc.Rank), $"{fc.Rank}");
 
         ImGui.SameLine(0, 8);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, fc.Tag);
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, Censor.Hide(fc.Tag, ScrambleTag));
 
         ImGui.SameLine(0, 6);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, fc.FCName);
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, Censor.Character(fc.FCName));
 
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterString, fc.WorldName);
@@ -170,7 +172,7 @@ public class AllFCsView : IFCView
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 14);
 
-        FCTrackerWidgets.ColoredText(color, fc.GetHousingStatusText());
+        FCTrackerWidgets.ColoredText(color, Censor.Hide(fc.GetHousingStatusText()));
 
         if (clickable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
             ECommonsIPC.Lifestream.GoToHousingAddress(($"{fc.WorldName}-{fc.Id}", (int) fc.HomeWorldId, (int)fc.House.Value.City, fc.House.Value.Ward+1, 0, fc.House.Value.Plot+1, -1, false, false, string.Empty));

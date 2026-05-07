@@ -1,8 +1,5 @@
 namespace FCTracker.UI;
 
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
@@ -11,6 +8,10 @@ using Dalamud.Interface.Windowing;
 using ECommons.GameHelpers;
 using FCTracker.Services;
 using FCTracker.UI.Views;
+using NightmareUI.Censoring;
+using System;
+using System.Collections.Generic;
+using System.Numerics;
 
 public class FCTrackerWindow : Window, IDisposable
 {
@@ -76,6 +77,9 @@ public class FCTrackerWindow : Window, IDisposable
 
     private void DrawHeaderActions()
     {
+        ImGui.Checkbox("Scramble Names", ref Censor.Config.Enabled);
+        ImGui.SameLine();
+
         ImGui.SetNextItemWidth(150);
         using (ImRaii.PushColor(ImGuiCol.FrameBg, FCTrackerTheme.BackgroundCard))
             ImGui.InputTextWithHint("##Search", "Search...", ref this.searchText, 256);
@@ -101,11 +105,14 @@ public class FCTrackerWindow : Window, IDisposable
         {
             if (ImGui.Button(FontAwesomeIcon.TrashAlt.ToIconString(), new Vector2(28, 0)))
             {
-                Configuration.Instance.ClearData();
+                if(ImGui.GetIO().KeyCtrl)
+                    Configuration.Instance.ClearData();
+                else
+                    Configuration.Instance.RemoveCurrentFCData();
                 Configuration.Instance.Save();
             }
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Clear all data");
+            ImGui.SetTooltip("Clear current character's data\nHold Ctrl to clear all data");
     }
 }

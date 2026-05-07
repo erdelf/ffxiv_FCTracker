@@ -51,7 +51,7 @@ public class FCTrackerLayout
 
             if (renderActions != null)
             {
-                ImGui.SameLine(ImGui.GetContentRegionMax().X - 260);
+                ImGui.SameLine(ImGui.GetContentRegionMax().X - 360);
                 renderActions();
             }
         }
