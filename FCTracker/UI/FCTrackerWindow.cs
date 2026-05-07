@@ -77,7 +77,12 @@ public class FCTrackerWindow : Window, IDisposable
 
     private void DrawHeaderActions()
     {
-        ImGui.Checkbox("Scramble Names", ref Censor.Config.Enabled);
+        using (ImRaii.PushColor(ImGuiCol.FrameBg, FCTrackerTheme.BackgroundHover))
+        using (ImRaii.PushColor(ImGuiCol.FrameBgHovered, FCTrackerTheme.BackgroundSelected))
+        using (ImRaii.PushColor(ImGuiCol.CheckMark, FCTrackerTheme.AccentBlue))
+        using (ImRaii.PushColor(ImGuiCol.Border, FCTrackerTheme.AccentBlueDim))
+        using (ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 1f))
+            ImGui.Checkbox("Scramble Names", ref Censor.Config.Enabled);
         ImGui.SameLine();
 
         ImGui.SetNextItemWidth(150);
