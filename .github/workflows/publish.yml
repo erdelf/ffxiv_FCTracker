@@ -1,0 +1,54 @@
+name: Build & Publish to Dynamis Latest
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    env:
+      DALAMUD_HOME: /tmp/dalamud
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Download Dalamud Latest
+        run: |
+          wget https://goatcorp.github.io/dalamud-distrib/latest.zip -O ${{ env.DALAMUD_HOME }}.zip
+          unzip ${{ env.DALAMUD_HOME }}.zip -d ${{ env.DALAMUD_HOME }}
+
+      - name: Restore Project
+        run: dotnet restore
+
+      - name: Build Project
+        run: dotnet build --configuration Release FCTracker/FCTracker.csproj -p:AssemblyVersion=${{ github.ref_name }}
+
+      - name: Publish Version
+        uses: PunishXIV/dynamis-action@v1
+        id: dynamis
+        with:
+          plugin_id: 135
+          internal_name: "FCTracker"
+          version_number: ${{ github.ref_name }}
+          path: "FCTracker/bin/Release/FCTracker/latest.zip"
+          type: "latest"
+          dalamud_version: "15"
+          changelog: ${{ github.event.release.body }}
+        env:
+          PUBLISHER_KEY: ${{ secrets.PUBLISHER_KEY }}
+
+      - name: 'Upload to GitHub release'
+        run: |
+            gh release upload ${{github.event.release.tag_name}} FCTracker/bin/Release/FCTracker/latest.zip
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
+        shell: bash
+
