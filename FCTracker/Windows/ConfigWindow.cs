@@ -36,12 +36,13 @@ public class ConfigWindow : Window, IDisposable
             using var body = ImRaii.Child("##ConfigBody", Vector2.Zero, false);
             if (!body.Success) return;
 
+            
             ImGui.SetCursorPos(new Vector2(14, 12));
-            FCTrackerWidgets.IconLabel(FCTrackerTheme.TextSecondary, FontAwesomeIcon.Cogs,
-                "No settings yet — coming soon.");
+            /*
+            FCTrackerWidgets.IconLabel(FCTrackerTheme.TextSecondary, FontAwesomeIcon.Cogs, "No settings yet — coming soon.");
+            ImGui.SetCursorPosX(14);*/
 
-            ImGui.SetCursorPosX(14);
-            ImGui.Checkbox("Scramble Names", ref Censor.Config.Enabled);
+            FCTrackerWidgets.Checkbox("Scramble Names", ref Censor.Config.Enabled);
         }
     }
 
