@@ -172,7 +172,7 @@ public class AllFCsView : IFCView
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 14);
 
-        FCTrackerWidgets.ColoredText(color, Censor.Hide(fc.GetHousingStatusText()));
+        FCTrackerWidgets.ColoredText(color, fc.HasHouse ? Censor.Hide(fc.GetHousingStatusText(), "House owned") : fc.GetHousingStatusText());
 
         if (clickable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
             ECommonsIPC.Lifestream.GoToHousingAddress(($"{fc.WorldName}-{fc.Id}", (int) fc.HomeWorldId, (int)fc.House.Value.City, fc.House.Value.Ward+1, 0, fc.House.Value.Plot+1, -1, false, false, string.Empty));
