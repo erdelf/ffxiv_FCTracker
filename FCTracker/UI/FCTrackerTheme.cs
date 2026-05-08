@@ -131,8 +131,8 @@ public static class FCTrackerTheme
 
     public static Vector4 GetRankColor(uint rank) => rank switch
     {
-        8 => AccentGreen,
-        >= 5 => AccentYellow,
+        >= 6 => AccentGreen,
+        >= 4 => AccentYellow,
         _ => TextSecondary
     };
 }
