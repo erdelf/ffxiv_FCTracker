@@ -59,20 +59,21 @@ public class ConfigurationFCDataService : IFCDataProvider
     public int GetFCCountForRegion(string region) =>
         Source.Count(fc => string.Equals(fc.Region, region, StringComparison.OrdinalIgnoreCase));
 
-    public (int Ready, int Upcoming, int Total) GetStatusCountsForWorld(string world) =>
+    public (int Done, int Ready, int Upcoming, int Total) GetStatusCountsForWorld(string world) =>
         ComputeStatusCounts(Source.Where(fc => string.Equals(fc.WorldName, world, StringComparison.OrdinalIgnoreCase)));
 
-    public (int Ready, int Upcoming, int Total) GetStatusCountsForDatacenter(string datacenter) =>
+    public (int Done, int Ready, int Upcoming, int Total) GetStatusCountsForDatacenter(string datacenter) =>
         ComputeStatusCounts(Source.Where(fc => string.Equals(fc.Datacenter, datacenter, StringComparison.OrdinalIgnoreCase)));
 
-    public (int Ready, int Upcoming, int Total) GetStatusCountsForRegion(string region) =>
+    public (int Done, int Ready, int Upcoming, int Total) GetStatusCountsForRegion(string region) =>
         ComputeStatusCounts(Source.Where(fc => string.Equals(fc.Region, region, StringComparison.OrdinalIgnoreCase)));
 
-    private static (int Ready, int Upcoming, int Total) ComputeStatusCounts(IEnumerable<FCData> fcs)
+    private static (int Done, int Ready, int Upcoming, int Total) ComputeStatusCounts(IEnumerable<FCData> fcs)
     {
-        List<FCData> list = fcs.ToList();
-        int ready = list.Count(fc => fc.IsEligible);
-        int upcoming = list.Count(fc => !fc.IsEligible && !fc.HasHouse && fc.DaysUntilEligible <= 7);
-        return (ready, upcoming, list.Count);
+        List<FCData> list     = fcs.ToList();
+        int          done     = list.Count(fc => fc.HasHouse);
+        int          ready    = list.Count(fc => fc.IsEligible);
+        int          upcoming = list.Count(fc => fc is { IsEligible: false, HasHouse: false, DaysUntilEligible: <= 7 });
+        return (done, ready, upcoming, list.Count);
     }
 }

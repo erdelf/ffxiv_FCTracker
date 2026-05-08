@@ -78,7 +78,8 @@ public class FCTrackerSidebar
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 22);
 
-        if (isActive) DrawActiveIndicator(22);
+        if (isActive) 
+            DrawActiveIndicator(22);
 
         ImGui.SetCursorPosX(12);
         FCTrackerWidgets.IconLabel(
@@ -99,13 +100,14 @@ public class FCTrackerSidebar
 
         foreach (string region in dcsByRegion.Keys.OrderBy(r => r == "NA" ? 0 : r == "EU" ? 1 : r == "JP" ? 2 : 3))
         {
-            (int ready, int upcoming, int total) = this.dataProvider.GetStatusCountsForRegion(region);
-            if (total == 0) continue;
-            this.DrawRegion(region, dcsByRegion[region], worldsByDc, ready, upcoming, total);
+            (int done, int ready, int upcoming, int total) = this.dataProvider.GetStatusCountsForRegion(region);
+            if (total == 0) 
+                continue;
+            this.DrawRegion(region, dcsByRegion[region], worldsByDc, done, ready, upcoming, total);
         }
     }
 
-    private void DrawRegion(string region, List<string> dcs, Dictionary<string, List<string>> worldsByDc, int ready, int upcoming, int total)
+    private void DrawRegion(string region, List<string> dcs, Dictionary<string, List<string>> worldsByDc, int done, int ready, int upcoming, int total)
     {
         bool isExpanded = this.regionExpandedState.GetValueOrDefault(region, true);
         bool isActive = this.SelectedRegion == region && this.SelectedDatacenter == null && this.SelectedWorld == null;
@@ -118,7 +120,6 @@ public class FCTrackerSidebar
         using (ImRaii.PushColor(ImGuiCol.Header, bgColor))
         using (ImRaii.PushColor(ImGuiCol.HeaderHovered, FCTrackerTheme.BackgroundHover))
         using (ImRaii.PushColor(ImGuiCol.HeaderActive, FCTrackerTheme.BackgroundSelected))
-        {
             if (ImGui.Selectable($"##Region{region}", isActive, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 22)))
             {
                 if (isActive)
@@ -127,18 +128,18 @@ public class FCTrackerSidebar
                 }
                 else
                 {
-                    this.ActiveViewId = "all";
-                    this.SelectedRegion = region;
-                    this.SelectedDatacenter = null;
-                    this.SelectedWorld = null;
+                    this.ActiveViewId                = "all";
+                    this.SelectedRegion              = region;
+                    this.SelectedDatacenter          = null;
+                    this.SelectedWorld               = null;
                     this.regionExpandedState[region] = true;
                 }
             }
-        }
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 22);
 
-        if (isActive) DrawActiveIndicator(22);
+        if (isActive)
+            DrawActiveIndicator(22);
 
         ImGui.SetCursorPosX(8);
         FCTrackerWidgets.Icon(FCTrackerTheme.TextMuted, isExpanded ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight);
@@ -155,20 +156,24 @@ public class FCTrackerSidebar
         ImGui.SameLine(SidebarWidth - 36);
         DrawCountBadge(total, FCTrackerTheme.TextMuted);
 
+        ImGui.SetCursorPosX(20);
+        DrawProgressBar(done, ready, upcoming, total);
+
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2);
 
         if (isExpanded)
         {
             foreach (string dc in dcs)
             {
-                (int Ready, int Upcoming, int Total) dcStats = this.dataProvider.GetStatusCountsForDatacenter(dc);
-                if (dcStats.Total == 0) continue;
-                this.DrawDatacenter(dc, worldsByDc, dcStats.Ready, dcStats.Upcoming, dcStats.Total);
+                (int Done, int Ready, int Upcoming, int Total) dcStats = this.dataProvider.GetStatusCountsForDatacenter(dc);
+                if (dcStats.Total == 0) 
+                    continue;
+                this.DrawDatacenter(dc, worldsByDc, dcStats.Done, dcStats.Ready, dcStats.Upcoming, dcStats.Total);
             }
         }
     }
 
-    private void DrawDatacenter(string dc, Dictionary<string, List<string>> worldsByDc, int ready, int upcoming, int total)
+    private void DrawDatacenter(string dc, Dictionary<string, List<string>> worldsByDc, int done, int ready, int upcoming, int total)
     {
         bool isExpanded = this.dcExpandedState.GetValueOrDefault(dc, false);
         bool isActive = this.SelectedDatacenter == dc && this.SelectedWorld == null;
@@ -198,7 +203,8 @@ public class FCTrackerSidebar
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 20);
 
-        if (isActive) DrawActiveIndicator(20);
+        if (isActive) 
+            DrawActiveIndicator(20);
 
         ImGui.SetCursorPosX(20);
         FCTrackerWidgets.Icon(FCTrackerTheme.TextMuted, isExpanded ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight);
@@ -213,7 +219,7 @@ public class FCTrackerSidebar
         DrawCountBadge(total, FCTrackerTheme.TextMuted);
 
         ImGui.SetCursorPosX(20);
-        DrawProgressBar(ready, upcoming, total);
+        DrawProgressBar(done, ready, upcoming, total);
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2);
 
@@ -221,14 +227,14 @@ public class FCTrackerSidebar
         {
             foreach (string world in worlds)
             {
-                (int Ready, int Upcoming, int Total) ws = this.dataProvider.GetStatusCountsForWorld(world);
+                (int Done, int Ready, int Upcoming, int Total) ws = this.dataProvider.GetStatusCountsForWorld(world);
                 if (ws.Total == 0) continue;
-                this.DrawWorld(world, ws.Ready, ws.Upcoming, ws.Total);
+                this.DrawWorld(world, ws.Done, ws.Ready, ws.Upcoming, ws.Total);
             }
         }
     }
 
-    private void DrawWorld(string world, int ready, int upcoming, int total)
+    private void DrawWorld(string world, int done, int ready, int upcoming, int total)
     {
         bool isActive = this.SelectedWorld == world;
 
@@ -247,7 +253,8 @@ public class FCTrackerSidebar
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 18);
 
-        if (isActive) DrawActiveIndicator(18);
+        if (isActive) 
+            DrawActiveIndicator(18);
 
         ImGui.SetCursorPosX(34);
         DrawStatusDot(ready, upcoming, 3);
@@ -257,6 +264,12 @@ public class FCTrackerSidebar
 
         ImGui.SameLine(SidebarWidth - 36);
         DrawCountBadge(total, FCTrackerTheme.TextMuted);
+
+        if (total > 1)
+        {
+            ImGui.SetCursorPosX(20);
+            DrawProgressBar(done, ready, upcoming, total);
+        }
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2);
     }
@@ -276,9 +289,12 @@ public class FCTrackerSidebar
     private static void DrawStatusDot(int ready, int upcoming, float radius = 4)
     {
         Vector4 color;
-        if (ready > 0) color = FCTrackerTheme.AccentGreen;
-        else if (upcoming > 0) color = FCTrackerTheme.AccentYellow;
-        else return;
+        if (ready > 0) 
+            color = FCTrackerTheme.AccentGreen;
+        else if (upcoming > 0) 
+            color = FCTrackerTheme.AccentYellow;
+        else 
+            return;
 
         Vector2 screenPos = ImGui.GetCursorScreenPos();
         ImDrawListPtr drawList = ImGui.GetWindowDrawList();
@@ -307,11 +323,12 @@ public class FCTrackerSidebar
         FCTrackerWidgets.ColoredText(color, text);
     }
 
-    private static void DrawProgressBar(int ready, int upcoming, int total)
+    private static void DrawProgressBar(int done, int ready, int upcoming, int total)
     {
-        if (total == 0) return;
+        if (total == 0)
+            return;
 
-        int pending = total - ready - upcoming;
+        int pending = total - done - ready - upcoming;
         const float barWidth = SidebarWidth - 56;
         const float barHeight = 3f;
         Vector2 screenPos = ImGui.GetCursorScreenPos();
@@ -326,9 +343,13 @@ public class FCTrackerSidebar
 
         float xOffset = 0f;
 
+        if (done != total)
+            total -= done;
+
+
         if (ready > 0)
         {
-            float w = (float)ready / total * barWidth;
+            float w = (float) ready / total * barWidth;
             drawList.AddRectFilled(
                 new Vector2(screenPos.X + xOffset, screenPos.Y),
                 new Vector2(screenPos.X + xOffset + w, screenPos.Y + barHeight),
@@ -338,7 +359,7 @@ public class FCTrackerSidebar
 
         if (upcoming > 0)
         {
-            float w = (float)upcoming / total * barWidth;
+            float w = (float) upcoming / total * barWidth;
             drawList.AddRectFilled(
                 new Vector2(screenPos.X + xOffset, screenPos.Y),
                 new Vector2(screenPos.X + xOffset + w, screenPos.Y + barHeight),
@@ -348,7 +369,7 @@ public class FCTrackerSidebar
 
         if (pending > 0)
         {
-            float w = (float)pending / total * barWidth;
+            float w = (float) pending / total * barWidth;
             drawList.AddRectFilled(
                 new Vector2(screenPos.X + xOffset, screenPos.Y),
                 new Vector2(screenPos.X + xOffset + w, screenPos.Y + barHeight),

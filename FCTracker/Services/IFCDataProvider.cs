@@ -27,7 +27,7 @@ public interface IFCDataProvider
     int GetFCCountForDatacenter(string datacenter);
     int GetFCCountForRegion(string region);
 
-    (int Ready, int Upcoming, int Total) GetStatusCountsForWorld(string world);
-    (int Ready, int Upcoming, int Total) GetStatusCountsForDatacenter(string datacenter);
-    (int Ready, int Upcoming, int Total) GetStatusCountsForRegion(string region);
+    (int Done, int Ready, int Upcoming, int Total) GetStatusCountsForWorld(string world);
+    (int Done, int Ready, int Upcoming, int Total) GetStatusCountsForDatacenter(string datacenter);
+    (int Done, int Ready, int Upcoming, int Total) GetStatusCountsForRegion(string region);
 }
