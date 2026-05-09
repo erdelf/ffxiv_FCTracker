@@ -1,13 +1,13 @@
 namespace FCTracker.UI;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using FCTracker.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 public class FCTrackerSidebar
 {
@@ -122,7 +122,7 @@ public class FCTrackerSidebar
         using (ImRaii.PushColor(ImGuiCol.HeaderActive, FCTrackerTheme.BackgroundSelected))
             if (ImGui.Selectable($"##Region{region}", isActive, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 22)))
             {
-                if (isActive)
+                if(isActive)
                 {
                     this.regionExpandedState[region] = !isExpanded;
                 }
@@ -142,6 +142,15 @@ public class FCTrackerSidebar
             DrawActiveIndicator(22);
 
         ImGui.SetCursorPosX(8);
+        ImGui.SetItemAllowOverlap();
+        using (ImRaii.PushColor(ImGuiCol.Header, bgColor))
+        using (ImRaii.PushColor(ImGuiCol.HeaderHovered, FCTrackerTheme.BackgroundHover))
+        using (ImRaii.PushColor(ImGuiCol.HeaderActive, FCTrackerTheme.BackgroundSelected))
+            if (ImGui.Selectable($"##RegionChevron{region}", false, ImGuiSelectableFlags.None, new Vector2(14, 14)))
+                this.regionExpandedState[region] = !isExpanded;
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 22);
+        ImGui.SetCursorPosX(8);
         FCTrackerWidgets.Icon(FCTrackerTheme.TextMuted, isExpanded ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight);
 
         ImGui.SameLine(0, 6);
@@ -158,6 +167,7 @@ public class FCTrackerSidebar
 
         ImGui.SetCursorPosX(20);
         DrawProgressBar(done, ready, upcoming, total);
+
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2);
 
@@ -180,22 +190,23 @@ public class FCTrackerSidebar
 
         ImGui.SetCursorPosX(0);
 
-        using (ImRaii.PushColor(ImGuiCol.Header, isActive ? FCTrackerTheme.BackgroundSelected : new Vector4(0, 0, 0, 0)))
+        Vector4 bgColor = isActive ? FCTrackerTheme.BackgroundSelected : new Vector4(0, 0, 0, 0);
+        using (ImRaii.PushColor(ImGuiCol.Header, bgColor))
         using (ImRaii.PushColor(ImGuiCol.HeaderHovered, FCTrackerTheme.BackgroundHover))
         using (ImRaii.PushColor(ImGuiCol.HeaderActive, FCTrackerTheme.BackgroundSelected))
         {
             if (ImGui.Selectable($"##DC{dc}", isActive, ImGuiSelectableFlags.None, new Vector2(SidebarWidth, 20)))
             {
-                if (isActive)
+                if(isActive)
                 {
                     this.dcExpandedState[dc] = !isExpanded;
                 }
                 else
                 {
-                    this.ActiveViewId = "all";
-                    this.SelectedRegion = null;
-                    this.SelectedDatacenter = dc;
-                    this.SelectedWorld = null;
+                    this.ActiveViewId        = "all";
+                    this.SelectedRegion      = null;
+                    this.SelectedDatacenter  = dc;
+                    this.SelectedWorld       = null;
                     this.dcExpandedState[dc] = true;
                 }
             }
@@ -206,6 +217,15 @@ public class FCTrackerSidebar
         if (isActive) 
             DrawActiveIndicator(20);
 
+        ImGui.SetCursorPosX(20);
+        ImGui.SetItemAllowOverlap();
+        using (ImRaii.PushColor(ImGuiCol.Header, bgColor))
+        using (ImRaii.PushColor(ImGuiCol.HeaderHovered, FCTrackerTheme.BackgroundHover))
+        using (ImRaii.PushColor(ImGuiCol.HeaderActive, FCTrackerTheme.BackgroundSelected))
+            if (ImGui.Selectable($"##DatacenterChevron{dc}", false, ImGuiSelectableFlags.None, new Vector2(14, 14)))
+                this.dcExpandedState[dc] = !isExpanded;
+
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 22);
         ImGui.SetCursorPosX(20);
         FCTrackerWidgets.Icon(FCTrackerTheme.TextMuted, isExpanded ? FontAwesomeIcon.ChevronDown : FontAwesomeIcon.ChevronRight);
 
@@ -325,7 +345,7 @@ public class FCTrackerSidebar
 
     private static void DrawProgressBar(int done, int ready, int upcoming, int total)
     {
-        if (total == 0)
+        if (total == 0 || done == total)
             return;
 
         int pending = total - done - ready - upcoming;
@@ -343,9 +363,7 @@ public class FCTrackerSidebar
 
         float xOffset = 0f;
 
-        if (done != total)
-            total -= done;
-
+        total -= done;
 
         if (ready > 0)
         {
