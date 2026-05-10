@@ -424,6 +424,8 @@ public class FCTrackerSidebar
         _ => new Vector4(0, 0, 0, 0)
     };
 
+    public bool SelectionActive => this.SelectedRegion != null || this.SelectedDatacenter != null || this.SelectedWorld != null;
+
     public void ClearSelection()
     {
         this.SelectedRegion = null;

@@ -31,10 +31,10 @@ public class FCViewContext
         {
             string search = this.SearchText.ToLowerInvariant();
             fcs = fcs.Where(fc =>
-                fc.FCName.ToLowerInvariant().Contains(search) ||
-                fc.Tag.ToLowerInvariant().Contains(search) ||
-                fc.MasterString.ToLowerInvariant().Contains(search) ||
-                fc.WorldName.ToLowerInvariant().Contains(search));
+                                fc.FCName.Contains(search, System.StringComparison.InvariantCultureIgnoreCase)       ||
+                                fc.Tag.Contains(search, System.StringComparison.InvariantCultureIgnoreCase)          ||
+                                fc.MasterString.Contains(search, System.StringComparison.InvariantCultureIgnoreCase) ||
+                                fc.WorldName.Contains(search, System.StringComparison.InvariantCultureIgnoreCase));
         }
 
         return fcs.ToList();

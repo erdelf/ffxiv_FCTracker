@@ -64,19 +64,21 @@ public class FCTrackerLayout
         using (ImRaii.PushColor(ImGuiCol.ChildBg, FCTrackerTheme.BackgroundCard))
         {
             using var strip = ImRaii.Child("##SummaryStrip", new Vector2(0, 32), true, ImGuiWindowFlags.NoScrollbar);
-            if (!strip.Success) return;
+            if (!strip.Success) 
+                return;
 
             ImGui.SetCursorPos(new Vector2(14, 8));
 
             bool isFirst = true;
             foreach ((string label, int value, Vector4 dotColor) in stats)
             {
-                if (!isFirst) ImGui.SameLine(0, 24);
+                if (!isFirst)
+                    ImGui.SameLine(0, 24);
                 isFirst = false;
+
                 DrawStatBadge(label, value, dotColor);
             }
         }
-
         ImGui.Spacing();
     }
 

@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using AutoRetainerAPI.Configuration;
 using ECommons.ExcelServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.Sheets;
@@ -32,14 +33,39 @@ public class Configuration
     [JsonProperty]
     public Dictionary<ulong, CharData> charByCID = [];
 
-
     [JsonProperty]
-    private Dictionary<ulong, FCData> FCData { get; set; } = [];
+    public Dictionary<ulong, FCData> FCData { get; set; } = [];
 
-    [JsonIgnore]
+    public static  AutoRetainerAPI.AutoRetainerApi AR_API = new();
+
+
+    private static ARData? arData;
+
+    public static ARData ARData
+    {
+        get
+        {
+            if (arData.HasValue)
+                return arData.Value;
+
+            ARData data = new();
+
+            foreach (FCData fcData in Instance.AllFCData)
+            {
+                ARData? fcARData = fcData.AutoRetainerData;
+                data.RepairCount += fcARData?.RepairCount ?? 0;
+                data.FuelCount += fcARData?.FuelCount ?? 0;
+            }
+            arData = data;
+
+            return arData.Value;
+        }
+    }
+    public static void ARDataBust() => arData = null;
+
     public IEnumerable<FCData> AllFCData => this.FCData.Values;
-    public ulong GetFCIdForCID(ulong cid) => 
-        this.charByCID.TryGetValue(cid, out CharData charData) ? charData.FC : 0;
+    public ulong? GetFCIdForCID(ulong cid) => 
+        this.charByCID.TryGetValue(cid, out CharData charData) ? charData.FC : null;
     
     public void ClearData() => 
         this.FCData.Clear();
@@ -48,7 +74,8 @@ public class Configuration
     {
         if(Player.Available)
             if(this.charByCID.TryGetValue(Player.CID, out CharData charData))
-                this.FCData.Remove(charData.FC);
+                if(charData.FC.HasValue)
+                    this.FCData.Remove(charData.FC.Value);
     }
 
     public unsafe void UpdateCurrentFCData()
@@ -149,7 +176,7 @@ public struct CharData
     public required ulong  CID;
     public          string Name;
     public          string World;
-    public          ulong  FC;
+    public          ulong? FC;
 
     public readonly string GetName() =>
         this.Name.Length != 0 ? Censor.Character(this.Name, this.World) : this.CID.ToString();
@@ -157,6 +184,14 @@ public struct CharData
     public readonly override int GetHashCode() =>
         this.CID.GetHashCode();
 }
+
+[JsonObject(MemberSerialization.OptOut)]
+public struct ARData
+{
+    public int RepairCount { get; set; }
+    public int FuelCount   { get; set; }
+}
+
 
 
 public enum HousingStatusCategory
@@ -182,6 +217,35 @@ public class FCData
     public uint         Rank         { get; set; } // 6 needed for Housing
     public DateTime     FoundingDate { get; set; } // 30 days needed for Housing
     public HashSet<ulong> MemberCIDs { get; set; } = [];
+
+
+    [JsonIgnore]
+    private ARData? autoRetainerData;
+
+    [JsonIgnore]
+    public ARData? AutoRetainerData
+    {
+        get
+        {
+            if(this.autoRetainerData.HasValue)
+                return this.autoRetainerData.Value;
+
+            if (Configuration.AR_API.Ready && this.MemberCIDs.Count != 0)
+            {
+                ARData arData = new();
+
+                foreach (ulong memberCID in this.MemberCIDs)
+                {
+                    OfflineCharacterData data = Configuration.AR_API.GetOfflineCharacterData(memberCID);
+                    arData.RepairCount += data.RepairKits;
+                    arData.FuelCount   += data.Ceruleum;
+                }
+
+                this.autoRetainerData = arData;
+            }
+            return this.autoRetainerData;
+        }
+    }
 
     [JsonObject(MemberSerialization.OptOut)]
     public struct HouseInfo
@@ -268,6 +332,7 @@ public class FCData
 
     [JsonIgnore]
     private bool? masterAvailable;
+
     [JsonIgnore]
     public bool MasterAvailable =>
         this.masterAvailable ??= Configuration.Instance.charByCID.Any(ch => this.MemberCIDs.Contains(ch.Value.CID) && ch.Value.Name == this.MasterString);
@@ -276,6 +341,12 @@ public class FCData
     {
         this.MemberCIDs.Add(cid);
         this.masterAvailable = null;
+    }
+
+    public void RecacheARData()
+    {
+        this.autoRetainerData = null;
+        Configuration.ARDataBust();
     }
 
     public HousingStatusCategory GetStatusCategory() => 

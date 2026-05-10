@@ -26,6 +26,12 @@
         "resolved": "2025.2.4",
         "contentHash": "TwbgxAkXxY+vNEhNVx/QXjJ4vqxmepOjsgRvvImQPbHkHMMb4W+ahL3laMsxXKtNT7iMy+E1B3xkqao2hf1n3A=="
       },
+      "autoretainerapi": {
+        "type": "Project",
+        "dependencies": {
+          "ECommons": "[3.2.0.11, )"
+        }
+      },
       "ecommons.ipc": {
         "type": "Project",
         "dependencies": {

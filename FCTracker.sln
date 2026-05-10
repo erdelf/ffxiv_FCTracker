@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NightmareUI", "NightmareUI\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommons.IPC", "ECommons.IPC\ECommons.IPC\ECommons.IPC.csproj", "{46BCE827-5FEF-F90B-9FDE-C93AC92B91CB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoRetainerAPI", "AutoRetainerAPI\AutoRetainerAPI\AutoRetainerAPI.csproj", "{FD667165-D01D-9ACE-56EA-E5EEDB568C76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -28,6 +30,10 @@ Global
 		{46BCE827-5FEF-F90B-9FDE-C93AC92B91CB}.Debug|x64.Build.0 = Debug|x64
 		{46BCE827-5FEF-F90B-9FDE-C93AC92B91CB}.Release|x64.ActiveCfg = Release|x64
 		{46BCE827-5FEF-F90B-9FDE-C93AC92B91CB}.Release|x64.Build.0 = Release|x64
+		{FD667165-D01D-9ACE-56EA-E5EEDB568C76}.Debug|x64.ActiveCfg = Debug|x64
+		{FD667165-D01D-9ACE-56EA-E5EEDB568C76}.Debug|x64.Build.0 = Debug|x64
+		{FD667165-D01D-9ACE-56EA-E5EEDB568C76}.Release|x64.ActiveCfg = Release|x64
+		{FD667165-D01D-9ACE-56EA-E5EEDB568C76}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

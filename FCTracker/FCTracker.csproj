@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AutoRetainerAPI\AutoRetainerAPI\AutoRetainerAPI.csproj" />
     <ProjectReference Include="..\ECommons.IPC\ECommons.IPC\ECommons.IPC.csproj" />
     <ProjectReference Include="..\NightmareUI\NightmareUI\NightmareUI.csproj" />
   </ItemGroup>

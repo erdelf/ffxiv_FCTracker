@@ -4,3 +4,6 @@
 [submodule "ECommons.IPC"]
 	path = ECommons.IPC
 	url = https://github.com/NightmareXIV/ECommons.IPC
+[submodule "AutoRetainerAPI"]
+	path = AutoRetainerAPI
+	url = https://github.com/PunishXIV/AutoRetainerAPI

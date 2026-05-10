@@ -45,6 +45,8 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
 
     public TaskManager TaskManager { get; init; } = null!;
 
+    public static ulong? LoggedInCID { get; set; }
+
     public int Version { get; init; }
 
     public FCTrackerPlugin()
@@ -97,11 +99,12 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                 HelpMessage = string.Join("\n", this.commands.Select(tuple => $"/fctrack or /fct {string.Join(" / ", tuple.Item1)} -> {tuple.Item2}"))
             });
 
-            Svc.ClientState.Login += this.ClientStateOnLogin;
-
             PluginInterface.UiBuilder.Draw         += this.windowSystem.Draw;
             PluginInterface.UiBuilder.OpenConfigUi += this.ToggleConfigUi;
             PluginInterface.UiBuilder.OpenMainUi   += this.ToggleMainUi;
+
+            Svc.ClientState.Login  += this.ClientStateOnLogin;
+            Svc.ClientState.Logout += this.ClientStateOnLogout;
         }
         catch (Exception e)
         {
@@ -109,13 +112,13 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
         }
     }
 
-
     public void Dispose()
     {
         PluginInterface.UiBuilder.Draw         -= this.windowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi -= this.ToggleConfigUi;
         PluginInterface.UiBuilder.OpenMainUi   -= this.ToggleMainUi;
         Svc.ClientState.Login                  -= this.ClientStateOnLogin;
+        Svc.ClientState.Logout                 -= this.ClientStateOnLogout;
 
         this.windowSystem.RemoveAllWindows();
 
@@ -158,10 +161,25 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
         }
     }
 
-    private unsafe void ClientStateOnLogin()
+    private void ClientStateOnLogin()
     {
+        LoggedInCID = Player.CID;
         this.GetFCInfo();
     }
+
+    private void ClientStateOnLogout(int type, int code)
+    {
+        if (Configuration.Instance.charByCID.TryGetValue(Player.CID, out CharData charData))
+        {
+            ulong? fcId = charData.FC;
+            if (fcId.HasValue)
+                if(Configuration.Instance.FCData.TryGetValue(fcId.Value, out FCData? fcData))
+                    fcData.RecacheARData();
+        }
+
+        LoggedInCID = null;
+    }
+
 
     public unsafe void GetFCInfo()
     {
