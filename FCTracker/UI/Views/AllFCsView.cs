@@ -114,8 +114,21 @@ public class AllFCsView : IFCView
         DrawFCNameCell(fc);
 
         ImGui.TableNextColumn();
+
+        bool masterSelectable = fc.MasterAvailable;
+
+        if (masterSelectable)
+        {
+            ImGui.Selectable("##FCMasterCell" + fc.Id);
+            ImGui.SetItemAllowOverlap();
+            ImGui.SameLine(0, 0);
+        }
+
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextSecondary,  Censor.Character(fc.MasterString));
 
+        if (masterSelectable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
+            ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterString, fc.WorldName);
+        
         ImGui.TableNextColumn();
         Vector4 memberColor = fc.TotalMembers <= 1 ? FCTrackerTheme.TextMuted :
                               fc.TotalMembers > 10 ? FCTrackerTheme.AccentPurple : FCTrackerTheme.TextSecondary;
@@ -134,9 +147,15 @@ public class AllFCsView : IFCView
 
     private static void DrawFCNameCell(FCData fc)
     {
-        ImGui.Selectable("##FCNameCell" + fc.Id);
-        ImGui.SetItemAllowOverlap();
-        ImGui.SameLine(0, 0);
+        bool selectable = fc.MemberCIDs.Count != 0;
+
+        if (selectable)
+        {
+            ImGui.Selectable("##FCNameCell" + fc.Id);
+            ImGui.SetItemAllowOverlap();
+            ImGui.SameLine(0, 0);
+        }
+
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetRankColor(fc.Rank), $"{fc.Rank}");
 
         ImGui.SameLine(0, 8);
@@ -145,8 +164,8 @@ public class AllFCsView : IFCView
         ImGui.SameLine(0, 6);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, Censor.Character(fc.FCName));
 
-        if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
-            ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterString, fc.WorldName);
+        if (selectable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
+            ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.charByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
     }
 
     private static void DrawStatusCell(FCData fc)

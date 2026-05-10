@@ -13,10 +13,12 @@ using InteropGenerator.Runtime;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using ECommons.ExcelServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.Sheets;
+using NightmareUI.Censoring;
 using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
 
 [JsonObject(MemberSerialization.OptIn)]
@@ -28,29 +30,44 @@ public class Configuration
     public int ConfigVersion { get; set; } = 0;
 
     [JsonProperty]
-    private Dictionary<ulong, ulong> CIDToFCId { get; set; } = [];
+    public Dictionary<ulong, CharData> charByCID = [];
+
 
     [JsonProperty]
     private Dictionary<ulong, FCData> FCData { get; set; } = [];
 
     [JsonIgnore]
     public IEnumerable<FCData> AllFCData => this.FCData.Values;
-    public ulong GetFCIdForCID(ulong cid) => this.CIDToFCId.TryGetValue(cid, out ulong fcId) ? fcId : 0;
+    public ulong GetFCIdForCID(ulong cid) => 
+        this.charByCID.TryGetValue(cid, out CharData charData) ? charData.FC : 0;
     
-    public void ClearData() => this.FCData.Clear();
+    public void ClearData() => 
+        this.FCData.Clear();
 
     public void RemoveCurrentFCData()
     {
         if(Player.Available)
-            if(this.CIDToFCId.TryGetValue(Player.CID, out ulong fcId))
-                this.FCData.Remove(fcId);
+            if(this.charByCID.TryGetValue(Player.CID, out CharData charData))
+                this.FCData.Remove(charData.FC);
     }
 
     public unsafe void UpdateCurrentFCData()
     {
+        if (!Player.Available)
+            return;
+
         InfoProxyFreeCompany* fcProxy = InfoProxyFreeCompany.Instance();
 
-        this.CIDToFCId[Player.CID] = fcProxy->Id;
+        if (fcProxy->Id == 0)
+            return;
+
+        this.charByCID[Player.CID] = new CharData
+                              {
+                                  CID   = Player.CID,
+                                  Name  = Player.Name,
+                                  World = Player.CurrentWorldName,
+                                  FC = fcProxy->Id
+                              };
 
         if (!this.FCData.TryGetValue(fcProxy->Id, out FCData? fcData))
         {
@@ -61,6 +78,8 @@ public class Configuration
                          GrandCompany = fcProxy->GrandCompany,
                      };
         }
+
+        fcData.MemberCIDs.Add(Player.CID);
 
 
 
@@ -124,6 +143,22 @@ public class FCTrackerSerializationFactory : DefaultSerializationFactory, ISeria
         Encoding.UTF8.GetBytes(this.Serialize(config));
 }
 
+[JsonObject(MemberSerialization.OptOut)]
+public struct CharData
+{
+    public required ulong  CID;
+    public          string Name;
+    public          string World;
+    public          ulong  FC;
+
+    public readonly string GetName() =>
+        this.Name.Length != 0 ? Censor.Character(this.Name, this.World) : this.CID.ToString();
+
+    public readonly override int GetHashCode() =>
+        this.CID.GetHashCode();
+}
+
+
 public enum HousingStatusCategory
 {
     Ready,   // 30+ days, rank ≥6, no house
@@ -146,6 +181,7 @@ public class FCData
     public GrandCompany GrandCompany { get; set; }
     public uint         Rank         { get; set; } // 6 needed for Housing
     public DateTime     FoundingDate { get; set; } // 30 days needed for Housing
+    public HashSet<ulong> MemberCIDs { get; set; } = [];
 
     [JsonObject(MemberSerialization.OptOut)]
     public struct HouseInfo
@@ -229,6 +265,18 @@ public class FCData
     [JsonIgnore]
     public DateTime EligibilityDate => 
         this.FoundingDate == default ? DateTime.Now : this.FoundingDate.AddDays(30);
+
+    [JsonIgnore]
+    private bool? masterAvailable;
+    [JsonIgnore]
+    public bool MasterAvailable =>
+        this.masterAvailable ??= Configuration.Instance.charByCID.Any(ch => this.MemberCIDs.Contains(ch.Value.CID) && ch.Value.Name == this.MasterString);
+
+    public void AddMember(ulong cid)
+    {
+        this.MemberCIDs.Add(cid);
+        this.masterAvailable = null;
+    }
 
     public HousingStatusCategory GetStatusCategory() => 
         this.HasHouse ? 
