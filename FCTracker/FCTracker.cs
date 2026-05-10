@@ -18,6 +18,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.GameHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using Services;
 using UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -105,6 +106,7 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
 
             Svc.ClientState.Login  += this.ClientStateOnLogin;
             Svc.ClientState.Logout += this.ClientStateOnLogout;
+            Svc.ClientState.TerritoryChanged += this.ClientStateOnTerritoryChanged;
         }
         catch (Exception e)
         {
@@ -119,6 +121,7 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
         PluginInterface.UiBuilder.OpenMainUi   -= this.ToggleMainUi;
         Svc.ClientState.Login                  -= this.ClientStateOnLogin;
         Svc.ClientState.Logout                 -= this.ClientStateOnLogout;
+        Svc.ClientState.TerritoryChanged       -= this.ClientStateOnTerritoryChanged;
 
         this.windowSystem.RemoveAllWindows();
 
@@ -180,6 +183,36 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
         LoggedInCID = null;
     }
 
+    private unsafe void ClientStateOnTerritoryChanged(uint t)
+    {
+        this.TaskManager.Enqueue(() => Player.Available);
+        this.TaskManager.Enqueue(() =>
+                                 {
+                                     HousingManager* housing = HousingManager.Instance();
+                                     if (housing->IsInside())
+                                     {
+                                         HouseId houseId = housing->GetCurrentHouseId();
+                                         if (!houseId.IsApartment)
+                                         {
+                                             ulong? fc = Configuration.Instance.GetFCIdForCID(Player.CID);
+                                             if (fc.HasValue)
+                                                 if (Configuration.Instance.FCData.TryGetValue(fc.Value, out FCData? fcData))
+                                                     if (fcData.HasHouse)
+                                                     {
+                                                         FCData.HouseInfo fcHouse = fcData.House!;
+                                                         if (houseId.WardIndex                                                                == fcHouse.Ward       &&
+                                                             houseId.PlotIndex                                                                == fcHouse.Plot       &&
+                                                             houseId.WorldId                                                                  == fcData.HomeWorldId &&
+                                                             FCData.HouseInfo.GetResidentialAetheryteByTerritoryType(houseId.TerritoryTypeId) == fcHouse.City)
+                                                         {
+                                                             fcData.House!.Visited();
+                                                             Configuration.Instance.Save();
+                                                         }
+                                                     }
+                                         }
+                                     }
+                                 });
+    }
 
     public unsafe void GetFCInfo()
     {

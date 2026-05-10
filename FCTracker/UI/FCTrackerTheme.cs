@@ -116,7 +116,12 @@ public static class FCTrackerTheme
         HousingStatusCategory.Ready => AccentGreen,
         HousingStatusCategory.Soon => AccentYellow,
         HousingStatusCategory.Waiting => AccentOrange,
-        HousingStatusCategory.Owned => AccentBlue,
+
+        HousingStatusCategory.NeverVisited => AccentPurple,
+        HousingStatusCategory.VisitedIn7Days => AccentBlue,
+        HousingStatusCategory.VisitedIn30Days => AccentYellow,
+        HousingStatusCategory.VisitedIn40Days => AccentOrange,
+        HousingStatusCategory.DemolitionImminent => AccentRed,
         _ => TextSecondary
     };
 
@@ -125,7 +130,7 @@ public static class FCTrackerTheme
         HousingStatusCategory.Ready => AccentGreenDim,
         HousingStatusCategory.Soon => AccentYellowDim,
         HousingStatusCategory.Waiting => AccentOrangeDim,
-        HousingStatusCategory.Owned => AccentBlueDim,
+        >= HousingStatusCategory.NeverVisited => AccentBlueDim,
         _ => new Vector4(0.5f, 0.5f, 0.5f, 0.1f)
     };
 

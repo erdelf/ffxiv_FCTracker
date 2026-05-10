@@ -133,13 +133,21 @@ public class Configuration
         HouseId houseId = HousingManager.GetOwnedHouseId(EstateType.FreeCompanyEstate);
         if (houseId.Unit.Value < 255)
         {
-            FCData.HouseInfo houseInfo = default;
-            houseInfo.Ward = houseId.WardIndex;
-            houseInfo.Plot = houseId.Unit.PlotIndex;
-            FCData.HouseInfo.ResidentialAetheryteKind? residentialAetheryteKind = FCTracker.FCData.HouseInfo.GetResidentialAetheryteByTerritoryType(houseId.TerritoryTypeId);
-            if (residentialAetheryteKind != null)
-                houseInfo.City = residentialAetheryteKind.Value;
-            fcData.House = houseInfo;
+            FCData.HouseInfo.ResidentialAetheryteKind? aetheryteKind = FCTracker.FCData.HouseInfo.GetResidentialAetheryteByTerritoryType(houseId.TerritoryTypeId);
+            if (!fcData.HasHouse                       ||
+                fcData.House!.Ward != houseId.WardIndex ||
+                fcData.House.Plot != houseId.PlotIndex ||
+                fcData.House.City != aetheryteKind)
+            {
+                FCData.HouseInfo houseInfo = new()
+                                             {
+                                                 Ward = houseId.WardIndex,
+                                                 Plot = houseId.Unit.PlotIndex
+                                             };
+                if (aetheryteKind != null)
+                    houseInfo.City = aetheryteKind.Value;
+                fcData.House = houseInfo;
+            }
         }
 
         fcData.FCName       = fcProxy->NameString;
@@ -192,14 +200,16 @@ public struct ARData
     public int FuelCount   { get; set; }
 }
 
-
-
 public enum HousingStatusCategory
 {
     Ready,   // 30+ days, rank ≥6, no house
     Soon,    // <=7 days remaining
     Waiting, // >7 days remaining
-    Owned    // HouseTemp populated
+    NeverVisited,
+    VisitedIn7Days,
+    VisitedIn30Days,
+    VisitedIn40Days,
+    DemolitionImminent,
 }
 
 [JsonObject(MemberSerialization.OptOut)]
@@ -248,7 +258,7 @@ public class FCData
     }
 
     [JsonObject(MemberSerialization.OptOut)]
-    public struct HouseInfo
+    public class HouseInfo
     {
         // From lifestream
         public enum ResidentialAetheryteKind
@@ -262,19 +272,46 @@ public class FCData
 
         public static ResidentialAetheryteKind? GetResidentialAetheryteByTerritoryType(uint territoryType)
         {
-            var t = Svc.Data.GetExcelSheet<TerritoryType>().GetRowOrDefault(territoryType);
-            if (t                             == null) return null;
-            if (t.Value.PlaceNameRegion.RowId == 2402) return ResidentialAetheryteKind.Shirogane;
-            if (t.Value.PlaceNameRegion.RowId == 25) return ResidentialAetheryteKind.Foundation;
-            if (t.Value.PlaceNameRegion.RowId == 23) return ResidentialAetheryteKind.LavenderBeds;
-            if (t.Value.PlaceNameRegion.RowId == 24) return ResidentialAetheryteKind.Goblet;
-            if (t.Value.PlaceNameRegion.RowId == 22) return ResidentialAetheryteKind.Limsa;
-            return null;
+            TerritoryType? t = Svc.Data.GetExcelSheet<TerritoryType>().GetRowOrDefault(territoryType);
+            if (t == null) 
+                return null;
+            return t.Value.PlaceNameRegion.RowId switch
+            {
+                2402 => ResidentialAetheryteKind.Shirogane,
+                25 => ResidentialAetheryteKind.Foundation,
+                23 => ResidentialAetheryteKind.LavenderBeds,
+                24 => ResidentialAetheryteKind.Goblet,
+                22 => ResidentialAetheryteKind.Limsa,
+                _ => null
+            };
         }
 
         public ResidentialAetheryteKind City { get; set; }
         public byte Ward { get; set; }
         public byte Plot { get; set; }
+        public DateTime? LastVisited { get; set; }
+
+        public void Visited() => 
+            this.LastVisited = DateTime.UtcNow;
+
+        [JsonIgnore]
+        public int DaysSinceLastVisit =>
+            this.LastVisited.HasValue ? (int)(DateTime.UtcNow - this.LastVisited.Value).TotalDays : int.MaxValue;
+
+        public HousingStatusCategory GetVisitationStatus()
+        {
+            if (this.LastVisited == null)
+                return HousingStatusCategory.NeverVisited;
+
+            TimeSpan timeSinceVisit = DateTime.UtcNow - this.LastVisited.Value;
+            return timeSinceVisit.Days switch
+            {
+                < 7 => HousingStatusCategory.VisitedIn7Days,
+                < 30 => HousingStatusCategory.VisitedIn30Days,
+                < 40 => HousingStatusCategory.VisitedIn40Days,
+                _ => HousingStatusCategory.DemolitionImminent,
+            };
+        }
     }
 
     public HouseInfo? House { get; set; }
@@ -350,8 +387,8 @@ public class FCData
     }
 
     public HousingStatusCategory GetStatusCategory() => 
-        this.HasHouse ? 
-            HousingStatusCategory.Owned : 
+        this.HasHouse ?
+            this.House!.GetVisitationStatus() : 
             this.IsEligible ? 
                 HousingStatusCategory.Ready : 
                 this.DaysUntilEligible <= 7 ? 
@@ -360,7 +397,7 @@ public class FCData
 
     public string GetHousingStatusText() => 
         this.HasHouse ? 
-            $"{this.House?.City} - Ward {this.House?.Ward + 1} - Plot {this.House?.Plot + 1}" : 
+            $"{this.House!.City} - Ward {this.House.Ward + 1} - Plot {this.House.Plot + 1} | {(this.House.LastVisited != null ? $"Last Visited: {(this.House.DaysSinceLastVisit > 0 ? $"{this.House.DaysSinceLastVisit}d ago" : "Today")}" : "Never visited")}" : 
             this.IsEligible ?
                 "Eligible" : 
                 $"{this.DaysUntilEligible}d left";
