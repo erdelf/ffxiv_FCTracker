@@ -29,14 +29,18 @@ public class AllFCsView : IFCView
         IReadOnlyList<FCData> fcs = all ? ctx.Data.GetAllFCs() : ctx.GetFilteredFCs();
 
         FCTrackerLayout.DrawSummaryStrip(
-                                         ("Total:", ctx.Data.GetTotalCount(), FCTrackerTheme.AccentBlue),
-                                         ("Ready:", ctx.Data.GetReadyCount(), FCTrackerTheme.AccentGreen),
-                                         ("Soon:", ctx.Data.GetPending7DayCount(), FCTrackerTheme.AccentYellow),
-                                         ("Pending:", ctx.Data.GetPending30DayCount(), FCTrackerTheme.AccentOrange),
-
-                                         ("Repair:", all ? Configuration.ARData.RepairCount : fcs.Sum(fcd => fcd.AutoRetainerData?.RepairCount ?? 0), FCTrackerTheme.AccentPurple),
-                                         ("Fuel:", all ? Configuration.ARData.FuelCount : fcs.Sum(fcd => fcd.AutoRetainerData?.FuelCount ?? 0), FCTrackerTheme.AccentRed)
-                                        );
+            left: new[]
+            {
+                ("Total:", ctx.Data.GetTotalCount(), FCTrackerTheme.AccentBlue),
+                ("Ready:", ctx.Data.GetReadyCount(), FCTrackerTheme.AccentGreen),
+                ("Soon:", ctx.Data.GetPending7DayCount(), FCTrackerTheme.AccentYellow),
+                ("Pending:", ctx.Data.GetPending30DayCount(), FCTrackerTheme.AccentOrange),
+            },
+            right: new[]
+            {
+                ("Repair:", all ? Configuration.ARData.RepairCount : fcs.Sum(fcd => fcd.AutoRetainerData?.RepairCount ?? 0), FCTrackerTheme.AccentPurple),
+                ("Fuel:",   all ? Configuration.ARData.FuelCount   : fcs.Sum(fcd => fcd.AutoRetainerData?.FuelCount   ?? 0), FCTrackerTheme.AccentRed),
+            });
 
         DrawFCTable(ctx);
     }

@@ -60,17 +60,22 @@ public class FCTrackerLayout
     }
 
     public static void DrawSummaryStrip(params (string Label, int Value, Vector4 DotColor)[] stats)
+        => DrawSummaryStrip(stats, null);
+
+    public static void DrawSummaryStrip(
+        (string Label, int Value, Vector4 DotColor)[] left,
+        (string Label, int Value, Vector4 DotColor)[]? right)
     {
         using (ImRaii.PushColor(ImGuiCol.ChildBg, FCTrackerTheme.BackgroundCard))
         {
             using var strip = ImRaii.Child("##SummaryStrip", new Vector2(0, 32), true, ImGuiWindowFlags.NoScrollbar);
-            if (!strip.Success) 
+            if (!strip.Success)
                 return;
 
             ImGui.SetCursorPos(new Vector2(14, 8));
 
             bool isFirst = true;
-            foreach ((string label, int value, Vector4 dotColor) in stats)
+            foreach ((string label, int value, Vector4 dotColor) in left)
             {
                 if (!isFirst)
                     ImGui.SameLine(0, 24);
@@ -78,8 +83,40 @@ public class FCTrackerLayout
 
                 DrawStatBadge(label, value, dotColor);
             }
+
+            if (right is { Length: > 0 })
+            {
+                float rightWidth = MeasureBadgeGroupWidth(right);
+                float posX = ImGui.GetContentRegionMax().X - rightWidth - 14;
+                ImGui.SameLine();
+                ImGui.SetCursorPosX(posX);
+
+                isFirst = true;
+                foreach ((string label, int value, Vector4 dotColor) in right)
+                {
+                    if (!isFirst)
+                        ImGui.SameLine(0, 24);
+                    isFirst = false;
+
+                    DrawStatBadge(label, value, dotColor);
+                }
+            }
         }
         ImGui.Spacing();
+    }
+
+    private static float MeasureBadgeGroupWidth((string Label, int Value, Vector4 DotColor)[] stats)
+    {
+        float total = 0;
+        for (int i = 0; i < stats.Length; i++)
+        {
+            (string label, int value, _) = stats[i];
+            float labelW = ImGui.CalcTextSize(label).X;
+            float valueW = ImGui.CalcTextSize(value.ToString()).X;
+            total += 14 + labelW + 4 + valueW;
+            if (i > 0) total += 24;
+        }
+        return total;
     }
 
     private static void DrawStatBadge(string label, int value, Vector4 dotColor)
