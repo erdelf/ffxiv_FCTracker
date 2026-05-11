@@ -124,7 +124,7 @@ public class UpcomingView : IFCView
         HousingStatusCategory category = daysLeft <= 3 ? HousingStatusCategory.Ready : 
                                          daysLeft <= 7 ? HousingStatusCategory.Soon : 
                                                          HousingStatusCategory.Waiting;
-        Vector4 dotColor = FCTrackerTheme.GetStatusColor(category);
+        Vector4 dotColor = FCTrackerTheme.GetStatusColor(category, false);
 
         ImGui.TableNextRow();
 

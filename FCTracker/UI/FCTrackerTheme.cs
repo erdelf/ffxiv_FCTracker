@@ -111,11 +111,13 @@ public static class FCTrackerTheme
         }
     }
 
-    public static Vector4 GetStatusColor(HousingStatusCategory category) => category switch
+    public static Vector4 GetStatusColor(HousingStatusCategory category, bool demolition) => category switch
     {
         HousingStatusCategory.Ready => AccentGreen,
         HousingStatusCategory.Soon => AccentYellow,
         HousingStatusCategory.Waiting => AccentOrange,
+
+        >= HousingStatusCategory.NeverVisited when demolition => AccentBlue,
 
         HousingStatusCategory.NeverVisited => AccentPurple,
         HousingStatusCategory.VisitedIn7Days => AccentBlue,

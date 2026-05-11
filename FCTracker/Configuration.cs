@@ -397,8 +397,13 @@ public class FCData
 
     public string GetHousingStatusText() => 
         this.HasHouse ? 
-            $"{this.House!.City} - Ward {this.House.Ward + 1} - Plot {this.House.Plot + 1} | {(this.House.LastVisited != null ? $"Last Visited: {(this.House.DaysSinceLastVisit > 0 ? $"{this.House.DaysSinceLastVisit}d ago" : "Today")}" : "Never visited")}" : 
+            $"{this.House!.City} - Ward {this.House.Ward + 1} - Plot {this.House.Plot + 1}" : 
             this.IsEligible ?
                 "Eligible" : 
                 $"{this.DaysUntilEligible}d left";
+
+    public string GetHousingDemolitionText() =>
+        this.HasHouse ?
+            $"{(this.House!.LastVisited != null ? $"Last Visited: {(this.House.DaysSinceLastVisit > 0 ? $"{this.House.DaysSinceLastVisit}d ago" : "Today")}" : "Never visited")}" :
+            string.Empty;
 }

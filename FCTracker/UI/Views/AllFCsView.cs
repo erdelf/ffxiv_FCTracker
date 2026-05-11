@@ -7,7 +7,9 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ECommons;
+using ECommons.Automation.NeoTaskManager;
 using ECommons.DalamudServices;
+using ECommons.GameHelpers;
 using ECommons.IPC;
 using NightmareUI.Censoring;
 
@@ -52,28 +54,27 @@ public class AllFCsView : IFCView
         using var tableChild = ImRaii.Child("##FCTableArea", Vector2.Zero, false);
         if (!tableChild.Success) return;
 
-        const ImGuiTableFlags flags = ImGuiTableFlags.ScrollY |
-                                      ImGuiTableFlags.PadOuterX |
+        const ImGuiTableFlags flags = ImGuiTableFlags.ScrollY        |
+                                      ImGuiTableFlags.PadOuterX      |
                                       ImGuiTableFlags.SizingFixedFit |
                                       ImGuiTableFlags.Resizable;
 
         using var table = ImRaii.Table("##FCTable", 6, flags);
-        if (!table.Success) 
+        if (!table.Success)
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("Free Company", ImGuiTableColumnFlags.WidthFixed, 260);
-        ImGui.TableSetupColumn("Master", ImGuiTableColumnFlags.WidthFixed, 140);
-        ImGui.TableSetupColumn("Members", ImGuiTableColumnFlags.WidthFixed, 60);
-        ImGui.TableSetupColumn("Founded", ImGuiTableColumnFlags.WidthFixed, 80);
-        ImGui.TableSetupColumn("Status", ImGuiTableColumnFlags.WidthFixed, 140);
-        ImGui.TableSetupColumn("##Spacer", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Master",       ImGuiTableColumnFlags.WidthFixed, 140);
+        ImGui.TableSetupColumn("Members",      ImGuiTableColumnFlags.WidthFixed, 60);
+        ImGui.TableSetupColumn("Founded",      ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("Status",       ImGuiTableColumnFlags.WidthFixed, 140);
+        ImGui.TableSetupColumn("Demolition",   ImGuiTableColumnFlags.WidthFixed, 60);
+        ImGui.TableSetupColumn("##Spacer",     ImGuiTableColumnFlags.WidthStretch);
 
         using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
         using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.TextSecondary))
-        {
             ImGui.TableHeadersRow();
-        }
 
         string? currentWorld = null;
 
@@ -153,6 +154,9 @@ public class AllFCsView : IFCView
         DrawStatusCell(fc);
 
         ImGui.TableNextColumn();
+
+        DrawDemolitionCell(fc);
+        ImGui.TableNextColumn();
     }
 
     private const string ScrambleTag = "« »";
@@ -182,7 +186,7 @@ public class AllFCsView : IFCView
 
     private static void DrawStatusCell(FCData fc)
     {
-        bool clickable = Svc.ClientState.IsLoggedIn && fc.HasHouse;
+        bool clickable = fc.MemberCIDs.Count != 0 && fc.HasHouse;
 
         if (clickable)
         {
@@ -191,7 +195,7 @@ public class AllFCsView : IFCView
             ImGui.SameLine(0, 0);
         }
 
-        Vector4 color = FCTrackerTheme.GetStatusColor(fc.GetStatusCategory());
+        Vector4 color = FCTrackerTheme.GetStatusColor(fc.GetStatusCategory(), false);
 
         Vector2 cursorPos = ImGui.GetCursorScreenPos();
         ImDrawListPtr drawList = ImGui.GetWindowDrawList();
@@ -205,7 +209,44 @@ public class AllFCsView : IFCView
 
         FCTrackerWidgets.ColoredText(color, (fc.HasHouse ? Censor.Hide(fc.GetHousingStatusText(), "House owned") : fc.GetHousingStatusText()));
 
+        void TeleportToFCHouse()
+        {
+            if(fc.MemberCIDs.Contains(Player.CID))
+                ECommonsIPC.Lifestream.TeleportToFC();
+            else
+                ECommonsIPC.Lifestream.GoToHousingAddress(($"{fc.WorldName}-{fc.Id}", (int) fc.HomeWorldId, (int)fc.House.City, fc.House.Ward+1, 0, fc.House.Plot+1, -1, false, false, string.Empty));
+        }
+
         if (clickable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
-            ECommonsIPC.Lifestream.GoToHousingAddress(($"{fc.WorldName}-{fc.Id}", (int) fc.HomeWorldId, (int)fc.House.City, fc.House.Ward+1, 0, fc.House.Plot+1, -1, false, false, string.Empty));
+            if(Svc.ClientState.IsLoggedIn)
+            {
+                TeleportToFCHouse();
+            }
+            else
+            {
+                TaskManager taskManager = FCTrackerPlugin.Plugin.TaskManager;
+
+                taskManager.Enqueue(() => ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.charByCID[fc.MemberCIDs.First()].Name, fc.WorldName));
+                taskManager.EnqueueDelay(100);
+                taskManager.Enqueue(() => !ECommonsIPC.Lifestream.IsBusy());
+                taskManager.EnqueueDelay(100);
+                taskManager.Enqueue(() => Svc.ClientState.IsLoggedIn);
+                taskManager.Enqueue(() => PlayerHelper.IsReady);
+                taskManager.Enqueue(TeleportToFCHouse);
+            }
+    }
+
+    private static void DrawDemolitionCell(FCData fc)
+    {
+        if (!fc.HasHouse)
+        {
+            ImGui.Text("—");
+            return;
+        }
+
+        string  text  = fc.GetHousingDemolitionText();
+        Vector4 color = FCTrackerTheme.GetStatusColor(fc.GetStatusCategory(), true);
+
+        FCTrackerWidgets.ColoredText(color, text);
     }
 }
