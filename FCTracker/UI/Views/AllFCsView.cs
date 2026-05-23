@@ -159,8 +159,6 @@ public class AllFCsView : IFCView
         ImGui.TableNextColumn();
     }
 
-    private const string ScrambleTag = "« »";
-
     private static void DrawFCNameCell(FCData fc)
     {
         bool selectable = fc.MemberCIDs.Count != 0;
@@ -175,7 +173,7 @@ public class AllFCsView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetRankColor(fc.Rank), $"{fc.Rank}");
 
         ImGui.SameLine(0, 8);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, Censor.Hide(fc.Tag, ScrambleTag));
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, Censor.Hide(fc.Tag, FCTrackerPlugin.ScrambleTag));
 
         ImGui.SameLine(0, 6);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, Censor.Character(fc.FCName));

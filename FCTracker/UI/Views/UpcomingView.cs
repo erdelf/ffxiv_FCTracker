@@ -1,12 +1,14 @@
 namespace FCTracker.UI.Views;
 
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Utility.Raii;
+using ECommons.IPC;
+using NightmareUI.Censoring;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Dalamud.Bindings.ImGui;
-using Dalamud.Interface;
-using Dalamud.Interface.Utility.Raii;
 
 public class UpcomingView : IFCView
 {
@@ -65,7 +67,7 @@ public class UpcomingView : IFCView
         {
             ImGui.SetCursorPos(new Vector2(14, ImGui.GetCursorPosY() + 20));
             FCTrackerWidgets.IconLabel(FCTrackerTheme.TextSecondary, FontAwesomeIcon.CalendarAlt,
-                "No upcoming FCs in the next 30 days.");
+                "No upcoming FCs.");
             return;
         }
 
@@ -75,9 +77,12 @@ public class UpcomingView : IFCView
 
         List<FCData> thisWeek = upcomingFCs.Where(fc => fc.EligibilityDate <= thisWeekEnd).ToList();
         List<FCData> nextWeek = upcomingFCs.Where(fc => fc.EligibilityDate > thisWeekEnd && fc.EligibilityDate <= nextWeekEnd).ToList();
-        List<IGrouping<string, FCData>> later = upcomingFCs.Where(fc => fc.EligibilityDate > nextWeekEnd)
-            .GroupBy(fc => fc.FoundingDate != default ? fc.EligibilityDate.ToString("MMMM yyyy") : "Unregistered")
-            .ToList();
+
+        List<IGrouping<string, FCData>> later = [];
+
+        later = upcomingFCs.Where(fc => fc.EligibilityDate > nextWeekEnd)
+                           .GroupBy(fc => fc.FoundingDate != default ? $"In {(fc.EligibilityDate - now).Days / 7} weeks" : "Unregistered")
+                           .ToList();
 
         const ImGuiTableFlags        flags = ImGuiTableFlags.PadOuterX | ImGuiTableFlags.SizingFixedFit;
         using ImRaii.TableDisposable table = ImRaii.Table("##UpcomingTable", 4, flags);
@@ -150,13 +155,26 @@ public class UpcomingView : IFCView
             FCTrackerWidgets.ColoredText(dotColor, daysLeft <= 1 ? "1d" : $"{daysLeft}d");
 
         ImGui.TableNextColumn();
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, fc.Tag);
-        
+
+        bool selectable = fc.MemberCIDs.Count != 0;
+
+        if (selectable)
+        {
+            selectable = ImGui.Selectable("##FCNameCell" + fc.Id);
+            ImGui.SetItemAllowOverlap();
+            ImGui.SameLine(0, 0);
+        }
+
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, Censor.Hide(fc.Tag, FCTrackerPlugin.ScrambleTag));
+
         ImGui.SameLine(0, 6);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, fc.FCName);
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, Censor.Character(fc.FCName));
         ImGui.SameLine(0, 10);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, $"· {fc.WorldName} · {fc.MasterString}");
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, $"· {Censor.World(fc.WorldName)} · {Censor.Character(fc.MasterString)}");
 
         ImGui.TableNextColumn();
+
+        if (selectable)
+            ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.charByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
     }
 }

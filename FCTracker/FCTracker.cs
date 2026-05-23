@@ -50,6 +50,8 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
 
     public int Version { get; init; }
 
+    public const string ScrambleTag = "« »";
+
     public FCTrackerPlugin()
     {
         try
@@ -251,6 +253,6 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Hide());
     }
 
-    public void ToggleConfigUi() => this.ConfigWindow.Toggle();
-    public void ToggleMainUi() => this.MainWindow.Toggle();
+    public       void   ToggleConfigUi() => this.ConfigWindow.Toggle();
+    public       void   ToggleMainUi()   => this.MainWindow.Toggle();
 }
