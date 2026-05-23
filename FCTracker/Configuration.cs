@@ -365,7 +365,7 @@ public class FCData
 
     [JsonIgnore]
     public DateTime EligibilityDate => 
-        this.FoundingDate == default ? DateTime.Now : this.FoundingDate.AddDays(30);
+        this.FoundingDate == default ? DateTime.MaxValue : this.FoundingDate.AddDays(30);
 
     [JsonIgnore]
     private bool? masterAvailable;
@@ -395,12 +395,14 @@ public class FCData
                     HousingStatusCategory.Soon : 
                     HousingStatusCategory.Waiting;
 
-    public string GetHousingStatusText() => 
-        this.HasHouse ? 
-            $"{this.House!.City} - Ward {this.House.Ward + 1} - Plot {this.House.Plot + 1}" : 
+    public string GetHousingStatusText() =>
+        this.HasHouse ?
+            $"{this.House!.City} - Ward {this.House.Ward + 1} - Plot {this.House.Plot + 1}" :
             this.IsEligible ?
-                "Eligible" : 
-                $"{this.DaysUntilEligible}d left";
+                "Eligible" :
+                this.FoundingDate == default ?
+                    "Not yet founded" :
+                    $"{this.DaysUntilEligible}d left";
 
     public string GetHousingDemolitionText() =>
         this.HasHouse ?
