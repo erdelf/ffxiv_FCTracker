@@ -9,11 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-public class FCTrackerSidebar
+public class FCTrackerSidebar(IFCDataProvider dataProvider)
 {
-    private readonly IFCDataProvider dataProvider;
     private readonly Dictionary<string, bool> regionExpandedState = new();
-    private readonly Dictionary<string, bool> dcExpandedState = new();
+    private readonly Dictionary<string, bool> dcExpandedState     = new();
 
     public string ActiveViewId { get; private set; } = "all";
     public string? SelectedRegion { get; private set; }
@@ -21,11 +20,6 @@ public class FCTrackerSidebar
     public string? SelectedWorld { get; private set; }
 
     private const float SidebarWidth = 200f;
-
-    public FCTrackerSidebar(IFCDataProvider dataProvider)
-    {
-        this.dataProvider = dataProvider;
-    }
 
     public void Draw()
     {
@@ -35,13 +29,13 @@ public class FCTrackerSidebar
             if (!sidebar.Success) return;
 
             this.DrawSectionLabel("VIEWS");
-            this.DrawViewItem("All FCs", FontAwesomeIcon.List, "all", this.dataProvider.GetTotalCount());
-            this.DrawViewItem("Upcoming", FontAwesomeIcon.Clock, "upcoming", this.dataProvider.GetUpcomingCount(),
-                this.dataProvider.GetUpcomingCount() > 0 ? FCTrackerTheme.AccentYellow : (Vector4?)null);
-            this.DrawViewItem("Ready Now", FontAwesomeIcon.Check, "ready", this.dataProvider.GetReadyCount(),
-                this.dataProvider.GetReadyCount() > 0 ? FCTrackerTheme.AccentGreen : (Vector4?)null);
-            this.DrawViewItem("Chars - No FCs", FontAwesomeIcon.UserSlash, "chars-no-fc", this.dataProvider.CharData().GetAllCharsWithoutFC().Count,
-                this.dataProvider.CharData().GetAllCharsWithoutFC().Count > 0 ? FCTrackerTheme.AccentOrange : (Vector4?)null);
+            this.DrawViewItem("All FCs", FontAwesomeIcon.List, "all", dataProvider.GetTotalCount());
+            this.DrawViewItem("Upcoming", FontAwesomeIcon.Clock, "upcoming", dataProvider.GetUpcomingCount(),
+                dataProvider.GetUpcomingCount() > 0 ? FCTrackerTheme.AccentYellow : (Vector4?)null);
+            this.DrawViewItem("Ready Now", FontAwesomeIcon.Check, "ready", dataProvider.GetReadyCount(),
+                dataProvider.GetReadyCount() > 0 ? FCTrackerTheme.AccentGreen : (Vector4?)null);
+            this.DrawViewItem("Chars - No FCs", FontAwesomeIcon.UserSlash, "chars-no-fc", dataProvider.CharData().GetAllCharsWithoutFC().Count,
+                dataProvider.CharData().GetAllCharsWithoutFC().Count > 0 ? FCTrackerTheme.AccentOrange : (Vector4?)null);
 
             ImGui.Spacing();
             ImGui.Separator();
@@ -97,12 +91,12 @@ public class FCTrackerSidebar
 
     private void DrawRegionsTree()
     {
-        Dictionary<string, List<string>> dcsByRegion = this.dataProvider.GetDatacentersByRegion();
-        Dictionary<string, List<string>> worldsByDc = this.dataProvider.GetWorldsByDatacenter();
+        Dictionary<string, List<string>> dcsByRegion = dataProvider.GetDatacentersByRegion();
+        Dictionary<string, List<string>> worldsByDc = dataProvider.GetWorldsByDatacenter();
 
         foreach (string region in dcsByRegion.Keys.OrderBy(r => r == "NA" ? 0 : r == "EU" ? 1 : r == "JP" ? 2 : 3))
         {
-            (int done, int ready, int upcoming, int total) = this.dataProvider.GetStatusCountsForRegion(region);
+            (int done, int ready, int upcoming, int total) = dataProvider.GetStatusCountsForRegion(region);
             if (total == 0) 
                 continue;
             this.DrawRegion(region, dcsByRegion[region], worldsByDc, done, ready, upcoming, total);
@@ -111,9 +105,9 @@ public class FCTrackerSidebar
 
     private void DrawRegion(string region, List<string> dcs, Dictionary<string, List<string>> worldsByDc, int done, int ready, int upcoming, int total)
     {
-        bool isExpanded = this.regionExpandedState.GetValueOrDefault(region, true);
-        bool isActive = this.SelectedRegion == region && this.SelectedDatacenter == null && this.SelectedWorld == null;
-        string regionName = GetRegionDisplayName(region);
+        bool            isExpanded = this.regionExpandedState.GetValueOrDefault(region, true);
+        bool            isActive   = this.SelectedRegion == region && this.SelectedDatacenter == null && this.SelectedWorld == null;
+        string          regionName = GetRegionDisplayName(region);
         FontAwesomeIcon regionIcon = GetRegionIcon(region);
 
         ImGui.SetCursorPosX(0);
@@ -177,7 +171,7 @@ public class FCTrackerSidebar
         {
             foreach (string dc in dcs)
             {
-                (int Done, int Ready, int Upcoming, int Total) dcStats = this.dataProvider.GetStatusCountsForDatacenter(dc);
+                (int Done, int Ready, int Upcoming, int Total) dcStats = dataProvider.GetStatusCountsForDatacenter(dc);
                 if (dcStats.Total == 0) 
                     continue;
                 this.DrawDatacenter(dc, worldsByDc, dcStats.Done, dcStats.Ready, dcStats.Upcoming, dcStats.Total);
@@ -249,7 +243,7 @@ public class FCTrackerSidebar
         {
             foreach (string world in worlds)
             {
-                (int Done, int Ready, int Upcoming, int Total) ws = this.dataProvider.GetStatusCountsForWorld(world);
+                (int Done, int Ready, int Upcoming, int Total) ws = dataProvider.GetStatusCountsForWorld(world);
                 if (ws.Total == 0) continue;
                 this.DrawWorld(world, ws.Done, ws.Ready, ws.Upcoming, ws.Total);
             }
@@ -302,7 +296,7 @@ public class FCTrackerSidebar
         Vector2 windowPos = ImGui.GetWindowPos();
         float cursorY = ImGui.GetCursorPosY();
         drawList.AddRectFilled(
-            new Vector2(windowPos.X, windowPos.Y + cursorY),
+            windowPos with { Y = windowPos.Y + cursorY },
             new Vector2(windowPos.X + 3, windowPos.Y + cursorY + height),
             ImGui.GetColorU32(FCTrackerTheme.AccentBlue)
         );
@@ -336,7 +330,7 @@ public class FCTrackerSidebar
         drawList.AddRectFilled(
             screenPos,
             new Vector2(screenPos.X + badgeWidth, screenPos.Y + 16),
-            ImGui.GetColorU32(new Vector4(color.X, color.Y, color.Z, 0.15f)),
+            ImGui.GetColorU32(color with { W = 0.15f }),
             8f
         );
 
@@ -371,7 +365,7 @@ public class FCTrackerSidebar
         {
             float w = (float) ready / total * barWidth;
             drawList.AddRectFilled(
-                new Vector2(screenPos.X + xOffset, screenPos.Y),
+                screenPos with { X = screenPos.X + xOffset },
                 new Vector2(screenPos.X + xOffset + w, screenPos.Y + barHeight),
                 ImGui.GetColorU32(FCTrackerTheme.AccentGreen), 2f);
             xOffset += w;
@@ -381,7 +375,7 @@ public class FCTrackerSidebar
         {
             float w = (float) upcoming / total * barWidth;
             drawList.AddRectFilled(
-                new Vector2(screenPos.X + xOffset, screenPos.Y),
+                screenPos with { X = screenPos.X + xOffset },
                 new Vector2(screenPos.X + xOffset + w, screenPos.Y + barHeight),
                 ImGui.GetColorU32(FCTrackerTheme.AccentYellow), 2f);
             xOffset += w;
@@ -391,7 +385,7 @@ public class FCTrackerSidebar
         {
             float w = (float) pending / total * barWidth;
             drawList.AddRectFilled(
-                new Vector2(screenPos.X + xOffset, screenPos.Y),
+                screenPos with { X = screenPos.X + xOffset },
                 new Vector2(screenPos.X + xOffset + w, screenPos.Y + barHeight),
                 ImGui.GetColorU32(FCTrackerTheme.AccentOrange), 2f);
         }

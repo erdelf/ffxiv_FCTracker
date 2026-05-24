@@ -79,7 +79,7 @@ public static class FCTrackerTheme
 
         ImGui.PushStyleColor(ImGuiCol.Tab, ButtonDefault); colorCount++;
         ImGui.PushStyleColor(ImGuiCol.TabHovered, AccentBlueDim); colorCount++;
-        ImGui.PushStyleColor(ImGuiCol.TabActive, new Vector4(AccentBlue.X, AccentBlue.Y, AccentBlue.Z, 0.25f)); colorCount++;
+        ImGui.PushStyleColor(ImGuiCol.TabActive, AccentBlue with { W = 0.25f }); colorCount++;
 
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 6f); styleCount++;
         ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 4f); styleCount++;
@@ -93,21 +93,12 @@ public static class FCTrackerTheme
         return new ThemeScope(colorCount, styleCount);
     }
 
-    private class ThemeScope : IDisposable
+    private class ThemeScope(int colorCount, int styleCount) : IDisposable
     {
-        private readonly int colorCount;
-        private readonly int styleCount;
-
-        public ThemeScope(int colorCount, int styleCount)
-        {
-            this.colorCount = colorCount;
-            this.styleCount = styleCount;
-        }
-
         public void Dispose()
         {
-            ImGui.PopStyleColor(this.colorCount);
-            ImGui.PopStyleVar(this.styleCount);
+            ImGui.PopStyleColor(colorCount);
+            ImGui.PopStyleVar(styleCount);
         }
     }
 

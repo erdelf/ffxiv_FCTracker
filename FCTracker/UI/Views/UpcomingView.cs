@@ -35,7 +35,7 @@ public class UpcomingView : IFCView
         if (readyCount == 0) return;
 
         using (ImRaii.PushColor(ImGuiCol.ChildBg, FCTrackerTheme.AccentGreenDim))
-        using (ImRaii.PushColor(ImGuiCol.Border, new Vector4(FCTrackerTheme.AccentGreen.X, FCTrackerTheme.AccentGreen.Y, FCTrackerTheme.AccentGreen.Z, 0.3f)))
+        using (ImRaii.PushColor(ImGuiCol.Border, FCTrackerTheme.AccentGreen with { W = 0.3f }))
         {
             using var banner = ImRaii.Child("##ReadyBanner", new Vector2(ImGui.GetContentRegionAvail().X - 28, 36), true);
             if (!banner.Success) return;

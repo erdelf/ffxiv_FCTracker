@@ -4,7 +4,6 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using ECommons;
 using ECommons.Configuration;
-using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
@@ -294,7 +293,7 @@ public class FCData
 
         public static ResidentialAetheryteKind? GetResidentialAetheryteByTerritoryType(uint territoryType)
         {
-            TerritoryType? t = Svc.Data.GetExcelSheet<TerritoryType>().GetRowOrDefault(territoryType);
+            TerritoryType? t = ExcelTerritoryHelper.Get(territoryType);
             if (t == null) 
                 return null;
             return t.Value.PlaceNameRegion.RowId switch

@@ -7,14 +7,9 @@ using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using FCTracker.Services;
 
-public class FCTrackerLayout
+public class FCTrackerLayout(IFCDataProvider dataProvider)
 {
-    public FCTrackerSidebar Sidebar { get; }
-
-    public FCTrackerLayout(IFCDataProvider dataProvider)
-    {
-        this.Sidebar = new FCTrackerSidebar(dataProvider);
-    }
+    public FCTrackerSidebar Sidebar { get; } = new(dataProvider);
 
     public void DrawWithHeader(string title, string subtitle, Action renderContent, Action? renderHeaderActions = null)
     {
