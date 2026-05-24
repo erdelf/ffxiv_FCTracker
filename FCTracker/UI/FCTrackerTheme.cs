@@ -142,4 +142,20 @@ public static class FCTrackerTheme
         >= 4 => AccentYellow,
         _ => TextSecondary
     };
+
+    public static Vector4 GetPlayerLevelColor(short level) => level switch
+    {
+        >= 25 => AccentGreen,
+        >= 20 => AccentYellow,
+        >= 10 => AccentOrange,
+        _ => TextSecondary
+    };
+
+    public static Vector4 GetPlayerGilColor(uint gilCount) => gilCount switch
+    {
+        >= 15_000 => AccentGreen,
+        >= 10_000 => AccentYellow,
+        >= 5_000 => AccentOrange,
+        _ => TextSecondary
+    };
 }

@@ -243,7 +243,7 @@ public class AllFCsView : IFCView
         }
 
         string  text  = fc.GetHousingDemolitionText();
-        Vector4 color = FCTrackerTheme.GetStatusColor(fc.GetStatusCategory(), true);
+        Vector4 color = FCTrackerTheme.GetStatusColor(fc.House!.GetVisitationStatus(), true);
 
         FCTrackerWidgets.ColoredText(color, text);
     }

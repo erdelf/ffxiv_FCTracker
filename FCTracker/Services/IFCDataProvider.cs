@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public interface IFCDataProvider
 {
+    ICharDataProvider     CharData();
     IReadOnlyList<FCData> GetAllFCs();
 
     IReadOnlyList<FCData> GetEligibleFCs();

@@ -30,6 +30,7 @@ public class FCTrackerWindow : Window, IDisposable
         this.RegisterView(new AllFCsView());
         this.RegisterView(new UpcomingView());
         this.RegisterView(new ReadyNowView());
+        this.RegisterView(new Chars_NoFC());
 
         this.SizeConstraints = new WindowSizeConstraints
         {

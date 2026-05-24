@@ -222,7 +222,10 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
         this.TaskManager.Enqueue(() =>
                                  {
                                      if (Player.Character->FreeCompanyTagString.Length <= 0)
+                                     {
+                                         Configuration.Instance.UpdateCurrentCharData();
                                          this.TaskManager.Abort();
+                                     }
                                  });
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Show());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->IsAddonShown());

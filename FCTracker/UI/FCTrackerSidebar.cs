@@ -40,6 +40,8 @@ public class FCTrackerSidebar
                 this.dataProvider.GetUpcomingCount() > 0 ? FCTrackerTheme.AccentYellow : (Vector4?)null);
             this.DrawViewItem("Ready Now", FontAwesomeIcon.Check, "ready", this.dataProvider.GetReadyCount(),
                 this.dataProvider.GetReadyCount() > 0 ? FCTrackerTheme.AccentGreen : (Vector4?)null);
+            this.DrawViewItem("Chars - No FCs", FontAwesomeIcon.UserSlash, "chars-no-fc", this.dataProvider.CharData().GetAllCharsWithoutFC().Count,
+                this.dataProvider.CharData().GetAllCharsWithoutFC().Count > 0 ? FCTrackerTheme.AccentOrange : (Vector4?)null);
 
             ImGui.Spacing();
             ImGui.Separator();

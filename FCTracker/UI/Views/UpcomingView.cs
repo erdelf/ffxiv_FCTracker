@@ -20,7 +20,8 @@ public class UpcomingView : IFCView
     public void Draw(FCViewContext ctx)
     {
         using var scrollArea = ImRaii.Child("##UpcomingScroll", Vector2.Zero, false);
-        if (!scrollArea.Success) return;
+        if (!scrollArea.Success) 
+            return;
 
         ImGui.SetCursorPos(new Vector2(14, 12));
 
@@ -78,21 +79,27 @@ public class UpcomingView : IFCView
         List<FCData> thisWeek = upcomingFCs.Where(fc => fc.EligibilityDate <= thisWeekEnd).ToList();
         List<FCData> nextWeek = upcomingFCs.Where(fc => fc.EligibilityDate > thisWeekEnd && fc.EligibilityDate <= nextWeekEnd).ToList();
 
-        List<IGrouping<string, FCData>> later = [];
+        List<IGrouping<string, FCData>> later = upcomingFCs.Where(fc => fc.EligibilityDate > nextWeekEnd)
+                                                           .GroupBy(fc => fc.FoundingDate != default ? $"In {(fc.EligibilityDate - now).Days / 7} weeks" : "Unregistered")
+                                                           .ToList();
 
-        later = upcomingFCs.Where(fc => fc.EligibilityDate > nextWeekEnd)
-                           .GroupBy(fc => fc.FoundingDate != default ? $"In {(fc.EligibilityDate - now).Days / 7} weeks" : "Unregistered")
-                           .ToList();
+        const ImGuiTableFlags flags = ImGuiTableFlags.ScrollY        |
+                                      ImGuiTableFlags.PadOuterX      |
+                                      ImGuiTableFlags.SizingFixedFit |
+                                      ImGuiTableFlags.Resizable;
 
-        const ImGuiTableFlags        flags = ImGuiTableFlags.PadOuterX | ImGuiTableFlags.SizingFixedFit;
         using ImRaii.TableDisposable table = ImRaii.Table("##UpcomingTable", 4, flags);
         if (!table.Success) 
             return;
-
+        ImGui.TableSetupScrollFreeze(3, 1);
         ImGui.TableSetupColumn("Date", ImGuiTableColumnFlags.WidthFixed, 90);
         ImGui.TableSetupColumn("Days", ImGuiTableColumnFlags.WidthFixed, 45);
         ImGui.TableSetupColumn("FC", ImGuiTableColumnFlags.WidthFixed, 500);
         ImGui.TableSetupColumn("##Spacer", ImGuiTableColumnFlags.WidthStretch);
+
+        using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
+        using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.TextSecondary))
+            ImGui.TableHeadersRow();
 
         if (thisWeek.Any()) 
             DrawSection("THIS WEEK", thisWeek);

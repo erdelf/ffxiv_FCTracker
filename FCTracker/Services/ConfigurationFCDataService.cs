@@ -6,7 +6,10 @@ using System.Linq;
 
 public class ConfigurationFCDataService : IFCDataProvider
 {
-    private static IEnumerable<FCData> Source => Configuration.Instance?.AllFCData ?? Enumerable.Empty<FCData>();
+    private static IEnumerable<FCData> Source   => Configuration.Instance?.AllFCData ?? [];
+
+    private        ICharDataProvider?  charData;
+    public         ICharDataProvider   CharData() => this.charData ??= new ConfigurationCharDataService();
 
     public IReadOnlyList<FCData> GetAllFCs() => Source.ToList();
 

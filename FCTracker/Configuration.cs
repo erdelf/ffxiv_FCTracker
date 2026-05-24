@@ -78,6 +78,21 @@ public class Configuration
                     this.FCData.Remove(charData.FC.Value);
     }
 
+    public void UpdateCurrentCharData()
+    {
+        this.charByCID[Player.CID] = new CharData
+                                     {
+                                         CID              = Player.CID,
+                                         Name             = Player.Name,
+                                         WorldId          = Player.HomeWorld.RowId,
+                                         GrandCompany     = (GrandCompany)Player.GrandCompany,
+                                         GrandCompanyRank = PlayerHelper.GetGrandCompanyRank(),
+                                         HighestLevel = PlayerHelper.GetHighestLevelFromSheet()
+                                     };
+
+        this.Save();
+    }
+
     public unsafe void UpdateCurrentFCData()
     {
         if (!Player.Available)
@@ -88,13 +103,9 @@ public class Configuration
         if (fcProxy->Id == 0)
             return;
 
-        this.charByCID[Player.CID] = new CharData
-                              {
-                                  CID   = Player.CID,
-                                  Name  = Player.Name,
-                                  World = Player.CurrentWorldName,
-                                  FC = fcProxy->Id
-                              };
+        this.UpdateCurrentCharData();
+
+        this.charByCID[Player.CID] = this.charByCID[Player.CID] with {FC = fcProxy->Id};
 
         if (!this.FCData.TryGetValue(fcProxy->Id, out FCData? fcData))
         {
@@ -181,13 +192,24 @@ public class FCTrackerSerializationFactory : DefaultSerializationFactory, ISeria
 [JsonObject(MemberSerialization.OptOut)]
 public struct CharData
 {
-    public required ulong  CID;
-    public          string Name;
-    public          string World;
-    public          ulong? FC;
+    public required ulong        CID;
+    public          string       Name;
+    public          uint         WorldId;
+    public          ulong?       FC;
 
-    public readonly string GetName() =>
-        this.Name.Length != 0 ? Censor.Character(this.Name, this.World) : this.CID.ToString();
+    public GrandCompany GrandCompany;
+    public uint         GrandCompanyRank;
+
+    public short HighestLevel;
+
+
+    [JsonIgnore]
+    public World? World => field ??= ExcelWorldHelper.Get(this.WorldId);
+    [JsonIgnore]
+    public string WorldName => this.World?.Name.ExtractText() ?? "???";
+
+    public string GetName() =>
+        this.Name.Length != 0 ? Censor.Character(this.Name, this.WorldName) : this.CID.ToString();
 
     public readonly override int GetHashCode() =>
         this.CID.GetHashCode();
