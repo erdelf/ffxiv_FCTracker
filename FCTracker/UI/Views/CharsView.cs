@@ -1,7 +1,6 @@
 ﻿namespace FCTracker.UI.Views;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
@@ -12,7 +11,6 @@ using ECommons.IPC;
 using Lumina.Excel.Sheets;
 using NightmareUI.Censoring;
 using Services;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -23,7 +21,7 @@ public class CharsView : IFCView
     public string Id => "chars";
 
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx) =>
-        ("Characters", $"{ctx.Data.CharData().GetAllCharsWithoutFC().Count} Chars pending");
+        ("Characters", $"{GetCharacters(ctx.Data).Count} Chars pending");
 
     private static bool charsAll          = false;
     private static bool charsAllWithHouse = false;
@@ -39,6 +37,18 @@ public class CharsView : IFCView
         DrawReadyBanner(ctx);
         DrawTimeline(ctx);
     }
+
+    public static IReadOnlyList<CharData> GetCharacters(IFCDataProvider dataProvider)
+    {
+        ICharDataProvider charData = dataProvider.CharData();
+        IReadOnlyList<CharData> chars = charsAll ?
+                                            charsAllWithHouse ?
+                                                charData.GetAllChars() :
+                                                charData.GetAllCharsWithFCHouse() :
+                                            charData.GetAllCharsWithoutFC();
+        return chars;
+    }
+
 
     private static void DrawReadyBanner(FCViewContext ctx)
     {
@@ -69,12 +79,7 @@ public class CharsView : IFCView
 
     private static void DrawTimeline(FCViewContext ctx)
     {
-        ICharDataProvider       charData = ctx.Data.CharData();
-        IReadOnlyList<CharData> chars    = charsAll ? 
-                                               charsAllWithHouse ? 
-                                                   charData.GetAllChars() : 
-                                                   charData.GetAllCharsWithFCHouse() : 
-                                               charData.GetAllCharsWithoutFC();
+        IReadOnlyList<CharData> chars = GetCharacters(ctx.Data);
         if (chars.Count == 0)
         {
             ImGui.SetCursorPos(new Vector2(14, ImGui.GetCursorPosY() + 20));
@@ -129,10 +134,9 @@ public class CharsView : IFCView
 
         ImGui.TableNextColumn();
         ImGui.TableNextColumn();
+        ImGui.TableNextColumn();
 
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, $"{worldCount}");
-
-        ImGui.TableNextColumn();
     }
 
     private static void DrawSection(World world, List<CharData> chars)

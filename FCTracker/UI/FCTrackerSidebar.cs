@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Views;
 
 public class FCTrackerSidebar(IFCDataProvider dataProvider)
 {
@@ -25,8 +26,9 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
     {
         using (ImRaii.PushColor(ImGuiCol.ChildBg, FCTrackerTheme.BackgroundSidebar))
         {
-            using var sidebar = ImRaii.Child("##Sidebar", new Vector2(SidebarWidth, 0), true);
-            if (!sidebar.Success) return;
+            using ImRaii.ChildDisposable sidebar = ImRaii.Child("##Sidebar", new Vector2(SidebarWidth, 0), true);
+            if (!sidebar.Success)
+                return;
 
             this.DrawSectionLabel("VIEWS");
             this.DrawViewItem("All FCs", FontAwesomeIcon.List, "all", dataProvider.GetTotalCount());
@@ -34,8 +36,10 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
                 dataProvider.GetUpcomingCount() > 0 ? FCTrackerTheme.AccentYellow : null);
             this.DrawViewItem("Ready Now", FontAwesomeIcon.Check, "ready", dataProvider.GetReadyCount(),
                 dataProvider.GetReadyCount() > 0 ? FCTrackerTheme.AccentGreen : null);
-            this.DrawViewItem("Characters", FontAwesomeIcon.User, "chars", dataProvider.CharData().GetAllCharsWithoutFC().Count,
-                dataProvider.CharData().GetAllCharsWithoutFC().Count > 0 ? FCTrackerTheme.AccentOrange : null);
+
+            IReadOnlyList<CharData> charData = CharsView.GetCharacters(dataProvider);
+            this.DrawViewItem("Characters", FontAwesomeIcon.User, "chars", charData.Count,
+                              charData.Count > 0 ? FCTrackerTheme.AccentOrange : null);
 
             ImGui.Spacing();
             ImGui.Separator();
