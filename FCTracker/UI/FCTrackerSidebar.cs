@@ -31,11 +31,11 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
             this.DrawSectionLabel("VIEWS");
             this.DrawViewItem("All FCs", FontAwesomeIcon.List, "all", dataProvider.GetTotalCount());
             this.DrawViewItem("Upcoming", FontAwesomeIcon.Clock, "upcoming", dataProvider.GetUpcomingCount(),
-                dataProvider.GetUpcomingCount() > 0 ? FCTrackerTheme.AccentYellow : (Vector4?)null);
+                dataProvider.GetUpcomingCount() > 0 ? FCTrackerTheme.AccentYellow : null);
             this.DrawViewItem("Ready Now", FontAwesomeIcon.Check, "ready", dataProvider.GetReadyCount(),
-                dataProvider.GetReadyCount() > 0 ? FCTrackerTheme.AccentGreen : (Vector4?)null);
-            this.DrawViewItem("Chars - No FCs", FontAwesomeIcon.UserSlash, "chars-no-fc", dataProvider.CharData().GetAllCharsWithoutFC().Count,
-                dataProvider.CharData().GetAllCharsWithoutFC().Count > 0 ? FCTrackerTheme.AccentOrange : (Vector4?)null);
+                dataProvider.GetReadyCount() > 0 ? FCTrackerTheme.AccentGreen : null);
+            this.DrawViewItem("Characters", FontAwesomeIcon.User, "chars", dataProvider.CharData().GetAllCharsWithoutFC().Count,
+                dataProvider.CharData().GetAllCharsWithoutFC().Count > 0 ? FCTrackerTheme.AccentOrange : null);
 
             ImGui.Spacing();
             ImGui.Separator();

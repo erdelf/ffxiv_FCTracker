@@ -11,6 +11,7 @@
     using FFXIVClientStructs.FFXIV.Client.Game.Control;
     using FFXIVClientStructs.FFXIV.Client.Game.UI;
     using Lumina.Excel.Sheets;
+    using System.Linq;
     using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
 
     internal static class PlayerHelper
@@ -45,6 +46,19 @@
         internal static unsafe GrandCompany GetGrandCompany() => (GrandCompany)PlayerState.Instance()->GrandCompany;
 
         internal static unsafe uint GetGrandCompanyRank() => PlayerState.Instance()->GetGrandCompanyRank();
+
+        internal static unsafe short GetHighestCombatLevelFromSheet()
+        {
+            PlayerState* playerState = PlayerState.Instance();
+            return Svc.Data.GetExcelSheet<ClassJob>().Where(x => x.Role > 0).Select(j => playerState->ClassJobLevels[j.ExpArrayIndex]).Max();
+        }
+
+        internal static unsafe short GetHighestGatheringLevelFromSheet()
+        {
+            PlayerState* playerState = PlayerState.Instance();
+            return Svc.Data.GetExcelSheet<ClassJob>().Where(x => x.ClassJobCategory.RowId == 32).Select(j => playerState->ClassJobLevels[j.ExpArrayIndex]).Max();
+        }
+
 
         internal static unsafe short GetCurrentLevelFromSheet(Job job)
         {

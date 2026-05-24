@@ -18,12 +18,12 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Interface.Textures.TextureWraps;
 
-public class Chars_NoFC : IFCView
+public class CharsView : IFCView
 {
-    public string Id => "chars-no-fc";
+    public string Id => "chars";
 
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx) =>
-        ("No FC Chars", $"{ctx.Data.CharData().GetAllCharsWithoutFC().Count} Chars pending");
+        ("Characters", $"{ctx.Data.CharData().GetAllCharsWithoutFC().Count} Chars pending");
 
     private static bool allChars = false;
 
@@ -76,7 +76,7 @@ public class Chars_NoFC : IFCView
                                       ImGuiTableFlags.Resizable;
 
 
-        using var table = ImRaii.Table("##UpcomingTable", 4, flags);
+        using var table = ImRaii.Table("##CharTable", 5, flags);
         if (!table.Success) 
             return;
 
@@ -85,11 +85,12 @@ public class Chars_NoFC : IFCView
         //ImGui.TableSetupColumn("Date", ImGuiTableColumnFlags.WidthFixed, 65);
         //ImGui.TableSetupColumn("Days", ImGuiTableColumnFlags.WidthFixed, 45);
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("Char",     ImGuiTableColumnFlags.WidthFixed, 150);
-        ImGui.TableSetupColumn("Lvl",      ImGuiTableColumnFlags.WidthFixed, 20);
-        ImGui.TableSetupColumn("Gil",      ImGuiTableColumnFlags.WidthFixed, 60);
-        ImGui.TableSetupColumn("Leves",    ImGuiTableColumnFlags.WidthFixed, 50);
-        ImGui.TableSetupColumn("##Spacer", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Char",          ImGuiTableColumnFlags.WidthFixed, 150);
+        ImGui.TableSetupColumn("Combat Lvl",    ImGuiTableColumnFlags.WidthFixed, 20);
+        ImGui.TableSetupColumn("Gathering Lvl", ImGuiTableColumnFlags.WidthFixed, 20);
+        ImGui.TableSetupColumn("Gil",           ImGuiTableColumnFlags.WidthFixed, 60);
+        ImGui.TableSetupColumn("Leves",         ImGuiTableColumnFlags.WidthFixed, 50);
+        ImGui.TableSetupColumn("##Spacer",      ImGuiTableColumnFlags.WidthStretch);
 
         using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
         using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.TextSecondary))
@@ -116,7 +117,8 @@ public class Chars_NoFC : IFCView
         }
 
         ImGui.TableNextColumn();
-        
+        ImGui.TableNextColumn();
+
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, $"{worldCount}");
 
         ImGui.TableNextColumn();
@@ -159,15 +161,17 @@ public class Chars_NoFC : IFCView
 
         ImGui.TableNextColumn();
 
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerLevelColor(ch.HighestLevel), ch.HighestLevel.ToString());
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerCombatLevelColor(ch.HighestLevelCombat), ch.HighestLevelCombat.ToString());
+        ImGui.TableNextColumn();
 
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGatheringLevelColor(ch.HighestLevelGathering), ch.HighestLevelGathering.ToString());
         ImGui.TableNextColumn();
 
         if (ECommonsIPC.AllaganTools.Available)
         {
             uint gilCount = ECommonsIPC.AllaganTools.ItemCount(1u, ch.CID, -1);
             FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGilColor(gilCount), gilCount.ToString("##,#"));
-            if (ThreadLoadImageHandler.TryGetIconTextureWrap(ExcelItemHelper.Get(1).Value.Icon, false, out IDalamudTextureWrap? tex))
+            if (ThreadLoadImageHandler.TryGetIconTextureWrap(ExcelItemHelper.Get(1)!.Value.Icon, false, out IDalamudTextureWrap? tex))
             {
                 ImGui.SameLine(0, 0);
                 ImGui.Image(tex.Handle, new Vector2(ImGuiHelpers.GetButtonSize("X").Y));

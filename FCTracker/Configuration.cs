@@ -87,9 +87,10 @@ public class Configuration
                                          WorldId           = Player.HomeWorld.RowId,
                                          GrandCompany      = (GrandCompany)Player.GrandCompany,
                                          GrandCompanyRank  = PlayerHelper.GetGrandCompanyRank(),
-                                         HighestLevel      = PlayerHelper.GetHighestLevelFromSheet(),
                                          LeveAllowances    = Math.Min(100, PlayerHelper.LeveAllowances + 3),
-                                         LeveAllowanceTime = QuestManager.GetNextLeveAllowancesDateTime()
+                                         LeveAllowanceTime = QuestManager.GetNextLeveAllowancesDateTime(),
+                                         HighestLevelCombat = PlayerHelper.GetHighestCombatLevelFromSheet(),
+                                         HighestLevelGathering = PlayerHelper.GetHighestGatheringLevelFromSheet(),
                                      };
 
         this.Save();
@@ -202,7 +203,8 @@ public struct CharData
     public GrandCompany GrandCompany;
     public uint         GrandCompanyRank;
 
-    public short HighestLevel;
+    public short HighestLevelCombat;
+    public short HighestLevelGathering;
 
     public int      LeveAllowances;
     public DateTime LeveAllowanceTime;

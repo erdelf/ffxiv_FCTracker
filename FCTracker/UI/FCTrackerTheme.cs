@@ -136,11 +136,19 @@ public static class FCTrackerTheme
         _ => TextSecondary
     };
 
-    public static Vector4 GetPlayerLevelColor(short level) => level switch
+    public static Vector4 GetPlayerCombatLevelColor(short level) => level switch
     {
         >= 25 => AccentGreen,
         >= 20 => AccentYellow,
         >= 10 => AccentOrange,
+        _ => TextSecondary
+    };
+
+    public static Vector4 GetPlayerGatheringLevelColor(short level) => level switch
+    {
+        >= 55 => AccentGreen,
+        >= 40 => AccentYellow,
+        >= 25 => AccentOrange,
         _ => TextSecondary
     };
 
