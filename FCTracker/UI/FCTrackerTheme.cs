@@ -160,6 +160,14 @@ public static class FCTrackerTheme
         _ => TextSecondary
     };
 
+    public static Vector4 GetPlayerLeveColor(int leve) => leve switch
+    {
+        >= 100 => AccentGreen,
+        >= 71 => AccentYellow,
+        >= 50 => AccentOrange,
+        _ => TextSecondary
+    };
+
     public static string RegionString(World? world)
     {
         uint? regionId = world?.DataCenter.ValueNullable?.Region.RowId;

@@ -226,7 +226,7 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                                          Configuration.Instance.UpdateCurrentCharData();
                                          this.TaskManager.Abort();
                                      }
-                                 });
+                                 }, "Character Test");
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Show());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->IsAddonShown());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->IsAddonReady());

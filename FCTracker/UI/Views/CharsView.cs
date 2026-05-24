@@ -25,7 +25,8 @@ public class CharsView : IFCView
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx) =>
         ("Characters", $"{ctx.Data.CharData().GetAllCharsWithoutFC().Count} Chars pending");
 
-    private static bool allChars = false;
+    private static bool charsAll          = false;
+    private static bool charsAllWithHouse = false;
 
     public void Draw(FCViewContext ctx)
     {
@@ -51,7 +52,15 @@ public class CharsView : IFCView
             ImGui.SetCursorPos(new Vector2(12, 8));
 
             using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.AccentGreen))
-                FCTrackerWidgets.Checkbox($"Show Chars with FCs", ref allChars);
+            {
+                FCTrackerWidgets.Checkbox($"Show Chars with FCs", ref charsAll);
+                if(charsAll)
+                {
+                    ImGui.SameLine();
+                    FCTrackerWidgets.Checkbox($"Show Chars with FCs with Houses", ref charsAllWithHouse);
+                }
+            }
+
             ImGuiComponents.HelpMarker("This is not what this is designed for, but we carry enough data for it to be valuable regardless. maybe");
         }
 
@@ -61,7 +70,11 @@ public class CharsView : IFCView
     private static void DrawTimeline(FCViewContext ctx)
     {
         ICharDataProvider       charData = ctx.Data.CharData();
-        IReadOnlyList<CharData> chars    = allChars ? charData.GetAllChars() : charData.GetAllCharsWithoutFC();
+        IReadOnlyList<CharData> chars    = charsAll ? 
+                                               charsAllWithHouse ? 
+                                                   charData.GetAllChars() : 
+                                                   charData.GetAllCharsWithFCHouse() : 
+                                               charData.GetAllCharsWithoutFC();
         if (chars.Count == 0)
         {
             ImGui.SetCursorPos(new Vector2(14, ImGui.GetCursorPosY() + 20));
@@ -82,8 +95,6 @@ public class CharsView : IFCView
 
         IEnumerable<IGrouping<World, CharData>> charWorlds = chars.GroupBy(ch => ch.World!.Value).OrderBy(g => g.Key.DataCenter.RowId);
 
-        //ImGui.TableSetupColumn("Date", ImGuiTableColumnFlags.WidthFixed, 65);
-        //ImGui.TableSetupColumn("Days", ImGuiTableColumnFlags.WidthFixed, 45);
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("Char",          ImGuiTableColumnFlags.WidthFixed, 150);
         ImGui.TableSetupColumn("Combat Lvl",    ImGuiTableColumnFlags.WidthFixed, 20);
@@ -132,11 +143,6 @@ public class CharsView : IFCView
 
         foreach (CharData ch in chars)
             DrawItem(ch);
-
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Dummy(new Vector2(0, 4));
     }
 
     private static void DrawItem(CharData ch)
@@ -180,7 +186,7 @@ public class CharsView : IFCView
 
         ImGui.TableNextColumn();
 
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, ch.LeveAllowancesNow.ToString());
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerLeveColor(ch.LeveAllowancesNow), ch.LeveAllowancesNow.ToString());
 
         ImGui.TableNextColumn();
 

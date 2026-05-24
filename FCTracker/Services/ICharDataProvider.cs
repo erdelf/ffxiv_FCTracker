@@ -9,6 +9,7 @@ namespace FCTracker.Services
     public interface ICharDataProvider
     {
         IReadOnlyList<CharData> GetAllChars();
+        IReadOnlyList<CharData> GetAllCharsWithFCHouse();
         IReadOnlyList<CharData> GetAllCharsWithoutFC();
         int                     GetCharCountForWorld(World world);
     }
