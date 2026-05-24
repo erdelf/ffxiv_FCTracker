@@ -86,7 +86,9 @@ public class Configuration
                                          WorldId          = Player.HomeWorld.RowId,
                                          GrandCompany     = (GrandCompany)Player.GrandCompany,
                                          GrandCompanyRank = PlayerHelper.GetGrandCompanyRank(),
-                                         HighestLevel = PlayerHelper.GetHighestLevelFromSheet()
+                                         HighestLevel     = PlayerHelper.GetHighestLevelFromSheet(),
+                                         LeveAllowances = Math.Min(100, PlayerHelper.LeveAllowances + 3),
+                                         LeveAllowanceTime = QuestManager.GetNextLeveAllowancesDateTime()
                                      };
 
         this.Save();
@@ -201,6 +203,9 @@ public struct CharData
 
     public short HighestLevel;
 
+    public int      LeveAllowances;
+    public DateTime LeveAllowanceTime;
+
 
     [JsonIgnore]
     public World? World => field ??= ExcelWorldHelper.Get(this.WorldId);
@@ -209,6 +214,20 @@ public struct CharData
 
     public string GetName() =>
         this.Name.Length != 0 ? Censor.Character(this.Name, this.WorldName) : this.CID.ToString();
+
+    public int LeveAllowancesNow
+    {
+        get
+        {
+            if (this.LeveAllowances is <= 0 or >= 100)
+                return this.LeveAllowances;
+
+            TimeSpan timePassed = DateTime.UtcNow - this.LeveAllowanceTime;
+            if (timePassed.Ticks <= 0)
+                return this.LeveAllowances-3;
+            return this.LeveAllowances + (int)(timePassed.TotalHours / 12);
+        }
+    }
 
     public readonly override int GetHashCode() =>
         this.CID.GetHashCode();

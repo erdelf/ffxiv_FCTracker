@@ -40,6 +40,7 @@
 
         private static bool IsOccupiedFull => IsOccupied || IsAnimationLocked;
 
+        public static unsafe int LeveAllowances => QuestManager.Instance()->NumLeveAllowances;
 
         internal static unsafe GrandCompany GetGrandCompany() => (GrandCompany)PlayerState.Instance()->GrandCompany;
 

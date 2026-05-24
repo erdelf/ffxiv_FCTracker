@@ -76,7 +76,7 @@ public class Chars_NoFC : IFCView
                                       ImGuiTableFlags.Resizable;
 
 
-        using var table = ImRaii.Table("##UpcomingTable", 3, flags);
+        using var table = ImRaii.Table("##UpcomingTable", 4, flags);
         if (!table.Success) 
             return;
 
@@ -88,6 +88,7 @@ public class Chars_NoFC : IFCView
         ImGui.TableSetupColumn("Char",     ImGuiTableColumnFlags.WidthFixed, 150);
         ImGui.TableSetupColumn("Lvl",      ImGuiTableColumnFlags.WidthFixed, 20);
         ImGui.TableSetupColumn("Gil",      ImGuiTableColumnFlags.WidthFixed, 60);
+        ImGui.TableSetupColumn("Leves",    ImGuiTableColumnFlags.WidthFixed, 50);
         ImGui.TableSetupColumn("##Spacer", ImGuiTableColumnFlags.WidthStretch);
 
         using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
@@ -172,6 +173,10 @@ public class Chars_NoFC : IFCView
                 ImGui.Image(tex.Handle, new Vector2(ImGuiHelpers.GetButtonSize("X").Y));
             }
         }
+
+        ImGui.TableNextColumn();
+
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, ch.LeveAllowancesNow.ToString());
 
         ImGui.TableNextColumn();
 
