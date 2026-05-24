@@ -1,8 +1,10 @@
 namespace FCTracker.UI;
 
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Lumina.Excel.Sheets;
 using System;
 using System.Numerics;
-using Dalamud.Bindings.ImGui;
 
 public static class FCTrackerTheme
 {
@@ -148,5 +150,36 @@ public static class FCTrackerTheme
         >= 10_000 => AccentYellow,
         >= 5_000 => AccentOrange,
         _ => TextSecondary
+    };
+
+    public static string RegionString(World? world)
+    {
+        uint? regionId = world?.DataCenter.ValueNullable?.Region.RowId;
+        return regionId switch
+        {
+            1 => "JP",
+            2 => "NA",
+            3 => "EU",
+            4 => "OCE",
+            _ => "??"
+        };
+    }
+
+    public static string GetRegionDisplayName(string region) => region switch
+    {
+        "NA" => "North America",
+        "EU" => "Europe",
+        "JP" => "Japan",
+        "OCE" => "Oceania",
+        _ => region
+    };
+
+    public static FontAwesomeIcon GetRegionIcon(string region) => region switch
+    {
+        "NA" => FontAwesomeIcon.GlobeAmericas,
+        "EU" => FontAwesomeIcon.GlobeEurope,
+        "JP" => FontAwesomeIcon.Sun,
+        "OCE" => FontAwesomeIcon.Water,
+        _ => FontAwesomeIcon.Globe
     };
 }

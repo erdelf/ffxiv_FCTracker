@@ -96,7 +96,7 @@ public class AllFCsView : IFCView
         ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FCTrackerTheme.BackgroundSidebar));
 
         ImGui.TableNextColumn();
-        FCTrackerWidgets.IconLabel(FCTrackerTheme.TextPrimary, FontAwesomeIcon.Globe, Censor.World(fc.WorldName));
+        FCTrackerWidgets.IconLabel(FCTrackerTheme.TextPrimary, FCTrackerTheme.GetRegionIcon(FCTrackerTheme.RegionString(fc.World)), Censor.World(fc.WorldName));
 
         if (!string.IsNullOrEmpty(fc.Datacenter))
         {

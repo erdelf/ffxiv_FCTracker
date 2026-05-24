@@ -107,7 +107,7 @@ public class Chars_NoFC : IFCView
         ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FCTrackerTheme.BackgroundSidebar));
 
         ImGui.TableNextColumn();
-        FCTrackerWidgets.IconLabel(FCTrackerTheme.TextPrimary, FontAwesomeIcon.Globe, Censor.World(world.Name.ExtractText()));
+        FCTrackerWidgets.IconLabel(FCTrackerTheme.TextPrimary, FCTrackerTheme.GetRegionIcon(FCTrackerTheme.RegionString(world)), Censor.World(world.Name.ExtractText()));
 
         if (!string.IsNullOrEmpty(world.DataCenter.ValueNullable?.Name.ExtractText()))
         {

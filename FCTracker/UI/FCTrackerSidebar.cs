@@ -107,8 +107,8 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
     {
         bool            isExpanded = this.regionExpandedState.GetValueOrDefault(region, true);
         bool            isActive   = this.SelectedRegion == region && this.SelectedDatacenter == null && this.SelectedWorld == null;
-        string          regionName = GetRegionDisplayName(region);
-        FontAwesomeIcon regionIcon = GetRegionIcon(region);
+        string          regionName = FCTrackerTheme.GetRegionDisplayName(region);
+        FontAwesomeIcon regionIcon = FCTrackerTheme.GetRegionIcon(region);
 
         ImGui.SetCursorPosX(0);
 
@@ -392,24 +392,6 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
 
         ImGui.Dummy(new Vector2(barWidth, barHeight));
     }
-
-    private static string GetRegionDisplayName(string region) => region switch
-    {
-        "NA" => "North America",
-        "EU" => "Europe",
-        "JP" => "Japan",
-        "OCE" => "Oceania",
-        _ => region
-    };
-
-    private static FontAwesomeIcon GetRegionIcon(string region) => region switch
-    {
-        "NA" => FontAwesomeIcon.GlobeAmericas,
-        "EU" => FontAwesomeIcon.GlobeEurope,
-        "JP" => FontAwesomeIcon.Sun,
-        "OCE" => FontAwesomeIcon.Water,
-        _ => FontAwesomeIcon.Globe
-    };
 
     private static Vector4 GetRegionBackgroundColor(string region) => region switch
     {

@@ -19,6 +19,7 @@ using ECommons.ExcelServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.Sheets;
 using NightmareUI.Censoring;
+using UI;
 using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
 
 [JsonObject(MemberSerialization.OptIn)]
@@ -81,13 +82,13 @@ public class Configuration
     {
         this.charByCID[Player.CID] = new CharData
                                      {
-                                         CID              = Player.CID,
-                                         Name             = Player.Name,
-                                         WorldId          = Player.HomeWorld.RowId,
-                                         GrandCompany     = (GrandCompany)Player.GrandCompany,
-                                         GrandCompanyRank = PlayerHelper.GetGrandCompanyRank(),
-                                         HighestLevel     = PlayerHelper.GetHighestLevelFromSheet(),
-                                         LeveAllowances = Math.Min(100, PlayerHelper.LeveAllowances + 3),
+                                         CID               = Player.CID,
+                                         Name              = Player.Name,
+                                         WorldId           = Player.HomeWorld.RowId,
+                                         GrandCompany      = (GrandCompany)Player.GrandCompany,
+                                         GrandCompanyRank  = PlayerHelper.GetGrandCompanyRank(),
+                                         HighestLevel      = PlayerHelper.GetHighestLevelFromSheet(),
+                                         LeveAllowances    = Math.Min(100, PlayerHelper.LeveAllowances + 3),
                                          LeveAllowanceTime = QuestManager.GetNextLeveAllowancesDateTime()
                                      };
 
@@ -363,21 +364,7 @@ public class FCData
     public string Datacenter => this.World?.DataCenter.ValueNullable?.Name.ToString() ?? string.Empty;
 
     [JsonIgnore]
-    public string Region
-    {
-        get
-        {
-            uint? regionId = this.World?.DataCenter.ValueNullable?.Region.RowId;
-            return regionId switch
-            {
-                1 => "JP",
-                2 => "NA",
-                3 => "EU",
-                4 => "OCE",
-                _ => "??"
-            };
-        }
-    }
+    public string Region => FCTrackerTheme.RegionString(this.World);
 
     [JsonIgnore]
     public bool HasHouse => 
