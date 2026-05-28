@@ -93,7 +93,10 @@ public class FCTrackerWindow : Window, IDisposable
             using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.AccentBlue))
             using (ImRaii.PushFont(UiBuilder.IconFont))
                 if (ImGui.Button(FontAwesomeIcon.SyncAlt.ToIconString(), new Vector2(28, 0)))
+                {
+                    FCTrackerPlugin.Plugin.TaskManager.Abort();
                     FCTrackerPlugin.Plugin.GetFCInfo();
+                }
         }
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Refresh current character");
