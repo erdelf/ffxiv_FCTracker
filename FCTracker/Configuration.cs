@@ -80,9 +80,11 @@ public class Configuration
 
     public void UpdateCurrentCharData()
     {
-        this.charByCID[Player.CID] = new CharData
+        if(!this.charByCID.TryGetValue(Player.CID, out CharData charData))
+            charData = new CharData { CID = Player.CID };
+
+        this.charByCID[Player.CID] = charData with
                                      {
-                                         CID               = Player.CID,
                                          Name              = Player.Name,
                                          WorldId           = Player.HomeWorld.RowId,
                                          GrandCompany      = (GrandCompany)Player.GrandCompany,
@@ -92,7 +94,6 @@ public class Configuration
                                          HighestLevelCombat = PlayerHelper.GetHighestCombatLevelFromSheet(),
                                          HighestLevelGathering = PlayerHelper.GetHighestGatheringLevelFromSheet(),
                                      };
-
         this.Save();
     }
 

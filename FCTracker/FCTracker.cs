@@ -180,8 +180,9 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
             if (fcId.HasValue)
                 if(Configuration.Instance.FCData.TryGetValue(fcId.Value, out FCData? fcData))
                     fcData.RecacheARData();
-        }
 
+            Configuration.Instance.UpdateCurrentCharData();
+        }
         LoggedInCID = null;
     }
 
