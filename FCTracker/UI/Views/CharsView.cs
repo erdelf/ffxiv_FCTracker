@@ -23,9 +23,6 @@ public class CharsView : IFCView
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx) =>
         ("Characters", $"{GetCharacters(ctx.Data).Count} Chars pending");
 
-    private static bool charsAll          = false;
-    private static bool charsAllWithHouse = false;
-
     public void Draw(FCViewContext ctx)
     {
         using ImRaii.ChildDisposable scrollArea = ImRaii.Child("##UpcomingScroll", Vector2.Zero, false);
@@ -41,8 +38,8 @@ public class CharsView : IFCView
     public static IReadOnlyList<CharData> GetCharacters(IFCDataProvider dataProvider)
     {
         ICharDataProvider charData = dataProvider.CharData();
-        IReadOnlyList<CharData> chars = charsAll ?
-                                            charsAllWithHouse ?
+        IReadOnlyList<CharData> chars = Configuration.Instance.CharViewData.CharsWithFC ?
+                                            Configuration.Instance.CharViewData.CharsWithFCWithHouse ?
                                                 charData.GetAllChars() :
                                                 charData.GetAllCharsWithFCHouse() :
                                             charData.GetAllCharsWithoutFC();
@@ -63,11 +60,24 @@ public class CharsView : IFCView
 
             using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.AccentGreen))
             {
-                FCTrackerWidgets.Checkbox($"Show Chars with FCs", ref charsAll);
-                if(charsAll)
+                CharViewData charViewData = Configuration.Instance.CharViewData;
+
+                bool save = false;
+
+                if (FCTrackerWidgets.Checkbox($"Show Chars with FCs", ref charViewData.CharsWithFC))
+                    save = true;
+
+                if(charViewData.CharsWithFC)
                 {
                     ImGui.SameLine();
-                    FCTrackerWidgets.Checkbox($"Show Chars with FCs with Houses", ref charsAllWithHouse);
+                    if(FCTrackerWidgets.Checkbox($"Show Chars with FCs with Houses", ref charViewData.CharsWithFCWithHouse))
+                        save = true;
+                }
+
+                if (save)
+                {
+                    Configuration.Instance.CharViewData = charViewData;
+                    Configuration.Instance.Save();
                 }
             }
 

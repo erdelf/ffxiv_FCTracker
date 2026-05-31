@@ -36,6 +36,9 @@ public class Configuration
     [JsonProperty]
     public Dictionary<ulong, FCData> FCData { get; set; } = [];
 
+    [JsonProperty]
+    public CharViewData CharViewData { get; set; }
+
     public static  AutoRetainerAPI.AutoRetainerApi AR_API = new();
 
 
@@ -191,6 +194,14 @@ public class FCTrackerSerializationFactory : DefaultSerializationFactory, ISeria
 
     public override byte[] SerializeAsBin(object config) =>
         Encoding.UTF8.GetBytes(this.Serialize(config));
+}
+
+[JsonObject(MemberSerialization.OptOut)]
+public struct CharViewData
+{
+    public bool CharsWithFC;
+
+    public bool CharsWithFCWithHouse;
 }
 
 [JsonObject(MemberSerialization.OptOut)]
