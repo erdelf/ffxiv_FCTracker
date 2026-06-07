@@ -76,7 +76,7 @@ public class Configuration
         {
             GatheredData? data = config.LoadData();
             if (data.HasValue)
-                this.ImportedData.Add(data.Value with { ImportSourceConfig = config });
+                this.ImportedData.Add(data.Value);
         }
 
         ARDataBust();
@@ -242,11 +242,7 @@ public class DataImportConfig
 
             Configuration? node    = JsonConvert.DeserializeObject<Configuration>(json);
             if (node?.GatheredData != null)
-            {
-
-
-                return this.Data = node.GatheredData;
-            }
+                return this.Data = node.GatheredData with { ImportSourceConfig = this };
         }
         return null;
     }
