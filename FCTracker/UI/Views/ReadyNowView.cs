@@ -1,10 +1,12 @@
 namespace FCTracker.UI.Views;
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
+using ECommons.IPC;
 
 public class ReadyNowView : IFCView
 {
@@ -17,8 +19,9 @@ public class ReadyNowView : IFCView
     {
         IReadOnlyList<FCData> readyFCs = ctx.Data.GetEligibleFCs();
 
-        using var scrollArea = ImRaii.Child("##ReadyScroll", Vector2.Zero, false);
-        if (!scrollArea.Success) return;
+        using ImRaii.ChildDisposable scrollArea = ImRaii.Child("##ReadyScroll", Vector2.Zero, false);
+        if (!scrollArea.Success) 
+            return;
 
         if (readyFCs.Count == 0)
         {
@@ -42,9 +45,7 @@ public class ReadyNowView : IFCView
         ImGui.TableSetupColumn("##Spacer", ImGuiTableColumnFlags.WidthStretch);
 
         foreach (FCData fc in readyFCs)
-        {
             DrawRow(fc);
-        }
     }
 
     private static void DrawBannerHeader(int count)
@@ -68,7 +69,8 @@ public class ReadyNowView : IFCView
         ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FCTrackerTheme.AccentGreenDim));
 
         ImGui.TableNextColumn();
-        Vector2 screenPos = ImGui.GetCursorScreenPos();
+
+		Vector2 screenPos = ImGui.GetCursorScreenPos();
         ImDrawListPtr drawList = ImGui.GetWindowDrawList();
         drawList.AddCircleFilled(new Vector2(screenPos.X + 4, screenPos.Y + 7), 4, ImGui.GetColorU32(FCTrackerTheme.AccentGreen));
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 14);
@@ -76,7 +78,17 @@ public class ReadyNowView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentGreen, "READY");
 
         ImGui.TableNextColumn();
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, fc.Tag);
+
+        bool selectable = fc.MemberCIDs.Count != 0;
+
+        if (selectable)
+        {
+            ImGui.Selectable("##FCCell" + fc.Id);
+            ImGui.SetItemAllowOverlap();
+            ImGui.SameLine(0, 0);
+        }
+
+		FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, fc.Tag);
         ImGui.SameLine(0, 6);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, fc.FCName);
         ImGui.SameLine(0, 10);
@@ -87,6 +99,9 @@ public class ReadyNowView : IFCView
             FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentGreen, $"+{daysEligible}d");
         }
 
-        ImGui.TableNextColumn();
+        if (selectable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
+            ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.GatheredData.CharByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
+
+		ImGui.TableNextColumn();
     }
 }
