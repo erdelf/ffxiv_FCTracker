@@ -168,17 +168,18 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
 
     private void ClientStateOnLogin()
     {
-        LoggedInCID = Player.CID;
+        Configuration.Instance.RefreshImportedData();
+		LoggedInCID = Player.CID;
         this.GetFCInfo();
     }
 
     private void ClientStateOnLogout(int type, int code)
     {
-        if (Configuration.Instance.charByCID.TryGetValue(Player.CID, out CharData charData))
+        if (Configuration.Instance.GatheredData.CharByCID.TryGetValue(Player.CID, out CharData charData))
         {
             ulong? fcId = charData.FC;
             if (fcId.HasValue)
-                if(Configuration.Instance.FCData.TryGetValue(fcId.Value, out FCData? fcData))
+                if(Configuration.Instance.GatheredData.FCData.TryGetValue(fcId.Value, out FCData? fcData))
                     fcData.RecacheARData();
 
             Configuration.Instance.UpdateCurrentCharData();
@@ -199,7 +200,7 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                                          {
                                              ulong? fc = Configuration.Instance.GetFCIdForCID(Player.CID);
                                              if (fc.HasValue)
-                                                 if (Configuration.Instance.FCData.TryGetValue(fc.Value, out FCData? fcData))
+                                                 if (Configuration.Instance.GatheredData.FCData.TryGetValue(fc.Value, out FCData? fcData))
                                                      if (fcData.HasHouse)
                                                      {
                                                          FCData.HouseInfo fcHouse = fcData.House!;

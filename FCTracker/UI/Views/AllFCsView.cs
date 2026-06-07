@@ -177,7 +177,7 @@ public class AllFCsView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, Censor.Character(fc.FCName));
 
         if (selectable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
-            ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.charByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
+            ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.GatheredData.CharByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
     }
 
     private static void DrawStatusCell(FCData fc)
@@ -222,7 +222,7 @@ public class AllFCsView : IFCView
             {
                 TaskManager taskManager = FCTrackerPlugin.Plugin.TaskManager;
 
-                taskManager.Enqueue(() => ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.charByCID[fc.MemberCIDs.First()].Name, fc.WorldName));
+                taskManager.Enqueue(() => ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.GatheredData.CharByCID[fc.MemberCIDs.First()].Name, fc.WorldName));
                 taskManager.EnqueueDelay(100);
                 taskManager.Enqueue(() => !ECommonsIPC.Lifestream.IsBusy());
                 taskManager.EnqueueDelay(100);

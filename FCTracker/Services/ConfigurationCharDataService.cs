@@ -9,10 +9,10 @@ namespace FCTracker.Services
 
     internal class ConfigurationCharDataService : ICharDataProvider
     {
-        private static IEnumerable<CharData> Source => Configuration.Instance?.charByCID.Values.ToList() ?? [];
+        private static IEnumerable<CharData> Source => Configuration.Instance?.GatheredData.CharByCID.Values.ToList() ?? [];
 
         public IReadOnlyList<CharData> GetAllChars()               => Source.ToList();
-        public IReadOnlyList<CharData> GetAllCharsWithFCHouse() => Source.Where(c => c.FC == null || !Configuration.Instance.FCData[c.FC.Value].HasHouse).ToList();
+        public IReadOnlyList<CharData> GetAllCharsWithFCHouse() => Source.Where(c => c.FC == null || !Configuration.Instance.GatheredData.FCData[c.FC.Value].HasHouse).ToList();
 
         public IReadOnlyList<CharData> GetAllCharsWithoutFC()            => Source.Where(c => c.FC == null).ToList();
         public int                     GetCharCountForWorld(World world) => Source.Count(c => c.World!.Value.RowId == world.RowId);

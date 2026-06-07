@@ -1,24 +1,27 @@
 namespace FCTracker;
 
+using AutoRetainerAPI.Configuration;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.ExcelServices;
 using ECommons.GameHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using InteropGenerator.Runtime;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
+using NightmareUI.Censoring;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using AutoRetainerAPI.Configuration;
-using ECommons.ExcelServices;
-using FFXIVClientStructs.FFXIV.Client.Game;
-using Lumina.Excel.Sheets;
-using NightmareUI.Censoring;
+using System.Xml;
+using ECommons.DalamudServices;
 using UI;
 using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
 
@@ -28,19 +31,19 @@ public class Configuration
     public static Configuration Instance { get; set; } = null!;
 
     [JsonProperty]
+    public GatheredData GatheredData { get; set; } = new();
+    public List<GatheredData> ImportedData { get; set; } = [];
+
+    [JsonProperty]
+    public List<DataImportConfig> DataImportConfig {get; set; } = [];
+
+    [JsonProperty]
     public int ConfigVersion { get; set; } = 0;
-
-    [JsonProperty]
-    public Dictionary<ulong, CharData> charByCID = [];
-
-    [JsonProperty]
-    public Dictionary<ulong, FCData> FCData { get; set; } = [];
 
     [JsonProperty]
     public CharViewData CharViewData { get; set; }
 
     public static  AutoRetainerAPI.AutoRetainerApi AR_API = new();
-
 
     private static ARData? arData;
 
@@ -64,29 +67,51 @@ public class Configuration
             return arData.Value;
         }
     }
+
+    public void RefreshImportedData()
+    {
+        this.ImportedData.Clear();
+
+        foreach (DataImportConfig config in this.DataImportConfig)
+        {
+            GatheredData? data = config.LoadData();
+            if (data.HasValue)
+                this.ImportedData.Add(data.Value with { ImportSourceConfig = config });
+        }
+
+        ARDataBust();
+    }
+
     public static void ARDataBust() => arData = null;
 
-    public IEnumerable<FCData> AllFCData => this.FCData.Values;
+    public IEnumerable<FCData> AllFCData
+    {
+        get
+        {
+            return this.GatheredData.FCData.Values.Concat(this.ImportedData.SelectMany(c => c.FCData.Values));
+        }
+    }
+
     public ulong? GetFCIdForCID(ulong cid) => 
-        this.charByCID.TryGetValue(cid, out CharData charData) ? charData.FC : null;
+        this.GatheredData.CharByCID.TryGetValue(cid, out CharData charData) ? charData.FC : null;
     
     public void ClearData() => 
-        this.FCData.Clear();
+        this.GatheredData.FCData.Clear();
 
     public void RemoveCurrentFCData()
     {
         if(Player.Available)
-            if(this.charByCID.TryGetValue(Player.CID, out CharData charData))
+            if(this.GatheredData.CharByCID.TryGetValue(Player.CID, out CharData charData))
                 if(charData.FC.HasValue)
-                    this.FCData.Remove(charData.FC.Value);
+                    this.GatheredData.FCData.Remove(charData.FC.Value);
     }
 
     public void UpdateCurrentCharData()
     {
-        if(!this.charByCID.TryGetValue(Player.CID, out CharData charData))
+        if(!this.GatheredData.CharByCID.TryGetValue(Player.CID, out CharData charData))
             charData = new CharData { CID = Player.CID };
 
-        this.charByCID[Player.CID] = charData with
+        this.GatheredData.CharByCID[Player.CID] = charData with
                                      {
                                          Name              = Player.Name,
                                          WorldId           = Player.HomeWorld.RowId,
@@ -112,9 +137,9 @@ public class Configuration
 
         this.UpdateCurrentCharData();
 
-        this.charByCID[Player.CID] = this.charByCID[Player.CID] with {FC = fcProxy->Id};
+        this.GatheredData.CharByCID[Player.CID] = this.GatheredData.CharByCID[Player.CID] with {FC = fcProxy->Id};
 
-        if (!this.FCData.TryGetValue(fcProxy->Id, out FCData? fcData))
+        if (!this.GatheredData.FCData.TryGetValue(fcProxy->Id, out FCData? fcData))
         {
             fcData = new FCData
                      {
@@ -151,7 +176,7 @@ public class Configuration
         HouseId houseId = HousingManager.GetOwnedHouseId(EstateType.FreeCompanyEstate);
         if (houseId.Unit.Value < 255)
         {
-            FCData.HouseInfo.ResidentialAetheryteKind? aetheryteKind = FCTracker.FCData.HouseInfo.GetResidentialAetheryteByTerritoryType(houseId.TerritoryTypeId);
+            FCData.HouseInfo.ResidentialAetheryteKind? aetheryteKind = FCData.HouseInfo.GetResidentialAetheryteByTerritoryType(houseId.TerritoryTypeId);
             if (!fcData.HasHouse                       ||
                 fcData.House!.Ward != houseId.WardIndex ||
                 fcData.House.Plot != houseId.PlotIndex ||
@@ -174,7 +199,7 @@ public class Configuration
         fcData.Rank         = fcProxy->Rank;
         
 
-        this.FCData[fcProxy->Id] = fcData;
+        this.GatheredData.FCData[fcProxy->Id] = fcData;
 
         this.Save();
     }
@@ -194,6 +219,51 @@ public class FCTrackerSerializationFactory : DefaultSerializationFactory, ISeria
 
     public override byte[] SerializeAsBin(object config) =>
         Encoding.UTF8.GetBytes(this.Serialize(config));
+}
+
+[JsonObject(MemberSerialization.OptOut)]
+public class DataImportConfig
+{
+    public bool Enabled { get; set; }
+    public required string Path { get; set; }
+
+    public GatheredData? Data;
+
+    public GatheredData? LoadData()
+    {
+        if (!this.Enabled)
+            return null;
+
+        if(File.Exists(this.Path))
+        {
+            string json;
+            using (StreamReader streamReader = new(this.Path, Encoding.UTF8))
+                json = streamReader.ReadToEnd();
+
+            Configuration? node    = JsonConvert.DeserializeObject<Configuration>(json);
+            if (node?.GatheredData != null)
+            {
+
+
+                return this.Data = node.GatheredData;
+            }
+        }
+        return null;
+    }
+}
+
+[JsonObject(MemberSerialization.OptOut)]
+public struct GatheredData
+{
+    public GatheredData()
+    {
+    }
+
+    public DataImportConfig? ImportSourceConfig;
+
+    public Dictionary<ulong, CharData> CharByCID { get; set; } = [];
+
+    public Dictionary<ulong, FCData> FCData { get; set; } = [];
 }
 
 [JsonObject(MemberSerialization.OptOut)]
@@ -283,8 +353,6 @@ public class FCData
     public DateTime     FoundingDate { get; set; } // 30 days needed for Housing
     public HashSet<ulong> MemberCIDs { get; set; } = [];
 
-
-    [JsonIgnore]
     private ARData? autoRetainerData;
 
     [JsonIgnore]
@@ -302,8 +370,11 @@ public class FCData
                 foreach (ulong memberCID in this.MemberCIDs)
                 {
                     OfflineCharacterData data = Configuration.AR_API.GetOfflineCharacterData(memberCID);
-                    arData.RepairCount += data.RepairKits;
-                    arData.FuelCount   += data.Ceruleum;
+                    if(data != null)
+                    {
+                        arData.RepairCount += data.RepairKits;
+                        arData.FuelCount   += data.Ceruleum;
+                    }
                 }
 
                 this.autoRetainerData = arData;
@@ -413,7 +484,7 @@ public class FCData
 
     [JsonIgnore]
     public bool MasterAvailable =>
-        this.masterAvailable ??= Configuration.Instance.charByCID.Any(ch => this.MemberCIDs.Contains(ch.Value.CID) && ch.Value.Name == this.MasterString);
+        this.masterAvailable ??= Configuration.Instance.GatheredData.CharByCID.Any(ch => this.MemberCIDs.Contains(ch.Value.CID) && ch.Value.Name == this.MasterString);
 
     public void AddMember(ulong cid)
     {

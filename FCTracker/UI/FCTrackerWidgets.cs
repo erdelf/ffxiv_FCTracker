@@ -1,9 +1,10 @@
 namespace FCTracker.UI;
 
-using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
+using ECommons.Interop;
+using System.Numerics;
 
 public static class FCTrackerWidgets
 {
@@ -35,5 +36,20 @@ public static class FCTrackerWidgets
         using (ImRaii.PushColor(ImGuiCol.Border, FCTrackerTheme.AccentBlueDim))
         using (ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 1f))
             return ImGui.Checkbox(label, ref enabled);
+    }
+
+    public static bool Button(string text, Vector4? color = null, Vector4? textColor = null)
+    {
+        using (ImRaii.PushColor(ImGuiCol.Button, color ?? FCTrackerTheme.ButtonDefault))
+        using (ImRaii.PushColor(ImGuiCol.Text, textColor ?? FCTrackerTheme.TextPrimary))
+            return ImGui.Button(text);
+    }
+
+    public static bool IconButton(FontAwesomeIcon icon, Vector4? color = null, Vector4? textColor = null)
+    {
+        using (ImRaii.PushColor(ImGuiCol.Button, color ?? FCTrackerTheme.ButtonDefault))
+        using (ImRaii.PushColor(ImGuiCol.Text, textColor ?? FCTrackerTheme.TextPrimary))
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+            return ImGui.Button(icon.ToIconString(), new Vector2(28, 0));
     }
 }

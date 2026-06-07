@@ -182,6 +182,6 @@ public class UpcomingView : IFCView
         ImGui.TableNextColumn();
 
         if (selectable)
-            ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.charByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
+            ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.GatheredData.CharByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
     }
 }
