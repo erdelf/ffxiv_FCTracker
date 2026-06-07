@@ -255,6 +255,7 @@ public struct GatheredData
     {
     }
 
+    [JsonIgnore]
     public DataImportConfig? ImportSourceConfig;
 
     public Dictionary<ulong, CharData> CharByCID { get; set; } = [];
