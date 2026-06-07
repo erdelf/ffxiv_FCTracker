@@ -52,9 +52,7 @@ public class UpcomingView : IFCView
             using (ImRaii.PushColor(ImGuiCol.ButtonHovered, FCTrackerTheme.AccentGreenDim))
             {
                 if (ImGui.SmallButton("View"))
-                {
                     ctx.Sidebar.SetView("ready");
-                }
             }
         }
 
@@ -76,8 +74,9 @@ public class UpcomingView : IFCView
         DateTime thisWeekEnd = now.AddDays(7 - (int)now.DayOfWeek);
         DateTime nextWeekEnd = thisWeekEnd.AddDays(7);
 
-        List<FCData> thisWeek = upcomingFCs.Where(fc => fc.EligibilityDate <= thisWeekEnd).ToList();
-        List<FCData> nextWeek = upcomingFCs.Where(fc => fc.EligibilityDate > thisWeekEnd && fc.EligibilityDate <= nextWeekEnd).ToList();
+		List<FCData> timeDone = upcomingFCs.Where(fc => fc.EligibilityDate <= DateTime.Now).ToList();
+		List<FCData> thisWeek = upcomingFCs.Where(fc => fc.EligibilityDate > DateTime.Now && fc.EligibilityDate <= thisWeekEnd).ToList();
+        List<FCData> nextWeek = upcomingFCs.Where(fc => fc.EligibilityDate > thisWeekEnd  && fc.EligibilityDate <= nextWeekEnd).ToList();
 
         List<IGrouping<string, FCData>> later = upcomingFCs.Where(fc => fc.EligibilityDate > nextWeekEnd)
                                                            .GroupBy(fc => fc.FoundingDate != default ? $"In {(fc.EligibilityDate - now).Days / 7} weeks" : "Unregistered")
@@ -92,18 +91,20 @@ public class UpcomingView : IFCView
         if (!table.Success) 
             return;
         ImGui.TableSetupScrollFreeze(3, 1);
-        ImGui.TableSetupColumn("Date", ImGuiTableColumnFlags.WidthFixed, 90);
-        ImGui.TableSetupColumn("Days", ImGuiTableColumnFlags.WidthFixed, 45);
-        ImGui.TableSetupColumn("FC", ImGuiTableColumnFlags.WidthFixed, 500);
+        ImGui.TableSetupColumn("Date",     ImGuiTableColumnFlags.WidthFixed, 90);
+        ImGui.TableSetupColumn("Days",     ImGuiTableColumnFlags.WidthFixed, 45);
+        ImGui.TableSetupColumn("GC",     ImGuiTableColumnFlags.WidthFixed, 45);
+		ImGui.TableSetupColumn("FC",       ImGuiTableColumnFlags.WidthFixed, 500);
         ImGui.TableSetupColumn("##Spacer", ImGuiTableColumnFlags.WidthStretch);
 
         using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
         using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.TextSecondary))
             ImGui.TableHeadersRow();
-
-        if (thisWeek.Any()) 
+        if (timeDone.Count != 0)
+            DrawSection("TIME DONE", timeDone);
+		if (thisWeek.Count != 0)
             DrawSection("THIS WEEK", thisWeek);
-        if (nextWeek.Any()) 
+        if (nextWeek.Count != 0)
             DrawSection("NEXT WEEK", nextWeek);
 
         foreach (IGrouping<string, FCData> monthGroup in later)
@@ -140,6 +141,7 @@ public class UpcomingView : IFCView
         HousingStatusCategory category = daysLeft <= 3 ? HousingStatusCategory.Ready :
                                          daysLeft <= 7 ? HousingStatusCategory.Soon :
                                                          HousingStatusCategory.Waiting;
+
         Vector4 dotColor = FCTrackerTheme.GetStatusColor(category, false);
 
         if (daysLeft <= 3)
@@ -159,11 +161,15 @@ public class UpcomingView : IFCView
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 14);
 
         if(hasDate)
-            FCTrackerWidgets.ColoredText(dotColor, daysLeft <= 1 ? "1d" : $"{daysLeft}d");
+            FCTrackerWidgets.ColoredText(dotColor, daysLeft <= 0 ? "DONE" : $"{daysLeft}d");
 
         ImGui.TableNextColumn();
 
-        bool selectable = fc.MemberCIDs.Count != 0;
+		FCTrackerWidgets.ColoredText(FCTrackerTheme.GetRankColor(fc.Rank), $"{fc.Rank}");
+
+		ImGui.TableNextColumn();
+
+		bool selectable = fc.MemberCIDs.Count != 0;
 
         if (selectable)
         {
