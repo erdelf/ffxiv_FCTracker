@@ -47,7 +47,8 @@ public class ConfigWindow : Window, IDisposable
                 FCTrackerWidgets.IconLabel(FCTrackerTheme.TextSecondary, FontAwesomeIcon.Cogs, "No settings yet — coming soon.");
                 ImGui.SetCursorPosX(14);*/
 
-                FCTrackerWidgets.Checkbox("Scramble Names", ref Censor.Config.Enabled);
+                if(FCTrackerWidgets.Checkbox("Scramble Names", ref Censor.Config.Enabled))
+                    Configuration.Instance.Save();
             }
             DrawImportData();
         }
@@ -97,6 +98,7 @@ public class ConfigWindow : Window, IDisposable
             {
                 importConfig.Enabled = enabled;
                 Configuration.Instance.RefreshImportedData();
+                Configuration.Instance.Save();
             }
 
             ImGui.SameLine();
@@ -108,6 +110,7 @@ public class ConfigWindow : Window, IDisposable
                 index--;
 
                 Configuration.Instance.RefreshImportedData();
+                Configuration.Instance.Save();
             }
         }
 
@@ -132,5 +135,6 @@ public class ConfigWindow : Window, IDisposable
                                                         Path    = ofn.file,
                                                         Enabled = true
                                                     });
+        Configuration.Instance.Save();
     }
 }
