@@ -8,38 +8,39 @@ using System.Numerics;
 
 public static class FCTrackerTheme
 {
-    public static Vector4 BackgroundDark { get; } = new(0.06f, 0.06f, 0.08f, 1f);
-    public static Vector4 BackgroundMid { get; } = new(0.10f, 0.10f, 0.14f, 1f);
-    public static Vector4 BackgroundLight { get; } = new(0.14f, 0.14f, 0.18f, 1f);
-    public static Vector4 BackgroundCard { get; } = new(0.12f, 0.12f, 0.16f, 1f);
-    public static Vector4 BackgroundSidebar { get; } = new(0.08f, 0.08f, 0.10f, 1f);
-    public static Vector4 BackgroundHeader { get; } = new(0.13f, 0.13f, 0.17f, 1f);
-    public static Vector4 BackgroundHover { get; } = new(0.18f, 0.18f, 0.24f, 1f);
+    public static Vector4 BackgroundDark     { get; } = new(0.06f, 0.06f, 0.08f, 1f);
+    public static Vector4 BackgroundMid      { get; } = new(0.10f, 0.10f, 0.14f, 1f);
+    public static Vector4 BackgroundLight    { get; } = new(0.14f, 0.14f, 0.18f, 1f);
+    public static Vector4 BackgroundCard     { get; } = new(0.12f, 0.12f, 0.16f, 1f);
+    public static Vector4 BackgroundSidebar  { get; } = new(0.08f, 0.08f, 0.10f, 1f);
+    public static Vector4 BackgroundHeader   { get; } = new(0.13f, 0.13f, 0.17f, 1f);
+    public static Vector4 BackgroundHover    { get; } = new(0.18f, 0.18f, 0.24f, 1f);
     public static Vector4 BackgroundSelected { get; } = new(0.16f, 0.16f, 0.22f, 1f);
 
-    public static Vector4 Border { get; } = new(0.22f, 0.22f, 0.28f, 1f);
+    public static Vector4 Border     { get; } = new(0.22f, 0.22f, 0.28f, 1f);
     public static Vector4 BorderDark { get; } = new(0.16f, 0.16f, 0.20f, 1f);
 
-    public static Vector4 TextPrimary { get; } = new(0.88f, 0.88f, 0.90f, 1f);
+    public static Vector4 TextPrimary   { get; } = new(0.88f, 0.88f, 0.90f, 1f);
     public static Vector4 TextSecondary { get; } = new(0.55f, 0.55f, 0.62f, 1f);
-    public static Vector4 TextMuted { get; } = new(0.40f, 0.40f, 0.45f, 1f);
-    public static Vector4 TextBright { get; } = new(0.95f, 0.95f, 0.97f, 1f);
+    public static Vector4 TextMuted     { get; } = new(0.40f, 0.40f, 0.45f, 1f);
+    public static Vector4 TextBright    { get; } = new(0.95f, 0.95f, 0.97f, 1f);
 
-    public static Vector4 AccentBlue { get; } = new(0.35f, 0.60f, 0.85f, 1f);
-    public static Vector4 AccentBlueDim { get; } = new(0.35f, 0.60f, 0.85f, 0.15f);
-    public static Vector4 AccentGreen { get; } = new(0.35f, 0.75f, 0.45f, 1f);
-    public static Vector4 AccentGreenDim { get; } = new(0.35f, 0.75f, 0.45f, 0.15f);
-    public static Vector4 AccentYellow { get; } = new(0.85f, 0.70f, 0.30f, 1f);
+    public static Vector4 AccentBlue      { get; } = new(0.35f, 0.60f, 0.85f, 1f);
+    public static Vector4 AccentBlueDim   { get; } = new(0.35f, 0.60f, 0.85f, 0.15f);
+    public static Vector4 AccentGreen     { get; } = new(0.35f, 0.75f, 0.45f, 1f);
+    public static Vector4 AccentGreenDim  { get; } = new(0.35f, 0.75f, 0.45f, 0.15f);
+    public static Vector4 AccentYellow    { get; } = new(0.85f, 0.70f, 0.30f, 1f);
     public static Vector4 AccentYellowDim { get; } = new(0.85f, 0.70f, 0.30f, 0.12f);
-    public static Vector4 AccentOrange { get; } = new(0.85f, 0.55f, 0.30f, 1f);
+    public static Vector4 AccentOrange    { get; } = new(0.85f, 0.55f, 0.30f, 1f);
     public static Vector4 AccentOrangeDim { get; } = new(0.85f, 0.55f, 0.30f, 0.12f);
-    public static Vector4 AccentPurple { get; } = new(0.60f, 0.45f, 0.80f, 1f);
+    public static Vector4 AccentPurple    { get; } = new(0.60f, 0.45f, 0.80f, 1f);
     public static Vector4 AccentPurpleDim { get; } = new(0.60f, 0.45f, 0.80f, 0.12f);
-    public static Vector4 AccentRed { get; } = new(0.85f, 0.35f, 0.35f, 1f);
+    public static Vector4 AccentRed       { get; } = new(0.85f, 0.35f, 0.35f, 1f);
+    public static Vector4 AccentRedDim    { get; } = new(0.85f, 0.35f, 0.35f, 0.12f);
 
     public static Vector4 ButtonDefault { get; } = new(0.18f, 0.18f, 0.22f, 1f);
     public static Vector4 ButtonHovered { get; } = new(0.24f, 0.24f, 0.30f, 1f);
-    public static Vector4 ButtonActive { get; } = new(0.30f, 0.30f, 0.38f, 1f);
+    public static Vector4 ButtonActive  { get; } = new(0.30f, 0.30f, 0.38f, 1f);
 
     public static IDisposable Push()
     {
@@ -103,6 +104,9 @@ public static class FCTrackerTheme
             ImGui.PopStyleVar(styleCount);
         }
     }
+
+    public static uint RowHighlightColor =>
+        ImGui.GetColorU32(FCTrackerTheme.AccentBlueDim);
 
     public static Vector4 GetStatusColor(HousingStatusCategory category, bool demolition) => category switch
     {

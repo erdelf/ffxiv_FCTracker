@@ -162,6 +162,10 @@ public class CharsView : IFCView
     private static void DrawItem(CharData ch)
     {
         ImGui.TableNextRow();
+
+        if (ch.CID == FCTrackerPlugin.LoggedInCID)
+            ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, FCTrackerTheme.RowHighlightColor);
+
         ImGui.TableNextColumn();
 
         bool selectable = ImGui.Selectable("##CharCell" + ch.CID);

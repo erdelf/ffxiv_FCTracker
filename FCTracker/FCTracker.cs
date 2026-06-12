@@ -109,6 +109,8 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
             Svc.ClientState.Login  += this.ClientStateOnLogin;
             Svc.ClientState.Logout += this.ClientStateOnLogout;
             Svc.ClientState.TerritoryChanged += this.ClientStateOnTerritoryChanged;
+
+            Configuration.Instance.RefreshImportedData();
         }
         catch (Exception e)
         {

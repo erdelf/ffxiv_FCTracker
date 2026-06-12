@@ -118,6 +118,9 @@ public class AllFCsView : IFCView
     {
         ImGui.TableNextRow();
 
+        if(fc.LoggedIn)
+            ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, FCTrackerTheme.RowHighlightColor);
+
         if (fc.GetStatusCategory() == HousingStatusCategory.Ready)
             ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FCTrackerTheme.AccentGreenDim));
 

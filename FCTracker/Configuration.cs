@@ -517,4 +517,7 @@ public class FCData
         this.HasHouse ?
             $"{(this.House!.LastVisited != null ? $"Last Visited: {(this.House.DaysSinceLastVisit > 0 ? $"{this.House.DaysSinceLastVisit}d ago" : "Today")}" : "Never visited")}" :
             string.Empty;
+
+    public bool LoggedIn =>
+        FCTrackerPlugin.LoggedInCID.HasValue && this.MemberCIDs.Contains(FCTrackerPlugin.LoggedInCID.Value);
 }

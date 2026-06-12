@@ -135,6 +135,9 @@ public class UpcomingView : IFCView
     {
         ImGui.TableNextRow();
 
+        if (fc.LoggedIn)
+            ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, FCTrackerTheme.RowHighlightColor);
+
         bool hasDate = fc.FoundingDate != default;
 
         int daysLeft = fc.DaysUntilEligible;

@@ -66,7 +66,7 @@ public class ReadyNowView : IFCView
         int daysEligible = fc.DaysSinceFounded - 30;
 
         ImGui.TableNextRow();
-        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FCTrackerTheme.AccentGreenDim));
+        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, fc.LoggedIn ? ImGui.GetColorU32(FCTrackerTheme.RowHighlightColor) : ImGui.GetColorU32(FCTrackerTheme.AccentGreenDim));
 
         ImGui.TableNextColumn();
 
