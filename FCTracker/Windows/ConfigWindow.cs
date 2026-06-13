@@ -105,7 +105,7 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SameLine();
             FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, $"{index + 1}: {Censor.Hide(importConfig.Path)}");
             ImGui.SameLine();
-            if (FCTrackerWidgets.IconButton(FontAwesomeIcon.TrashAlt, FCTrackerTheme.AccentRed with { W = 0.15f }, FCTrackerTheme.AccentRed))
+            if (FCTrackerWidgets.IconButton(FontAwesomeIcon.TrashAlt, $"DataDelete_{index}", FCTrackerTheme.AccentRed with { W = 0.15f }, FCTrackerTheme.AccentRed))
             {
                 Configuration.Instance.DataImportConfig.RemoveAt(index);
                 index--;
@@ -116,14 +116,14 @@ public class ConfigWindow : Window, IDisposable
         }
 
         ImGui.SetCursorPosX(14);
-        if (FCTrackerWidgets.IconButton(FontAwesomeIcon.File, FCTrackerTheme.AccentBlueDim, FCTrackerTheme.AccentBlue))
+        if (FCTrackerWidgets.IconButton(FontAwesomeIcon.File, "DataImport", FCTrackerTheme.AccentBlueDim, FCTrackerTheme.AccentBlue))
             OpenFileDialog.SelectFile(NewImportData, title: "Select FC Tracker Data File", fileTypes: [("Json", ["json"])]);
         ImGui.SameLine();
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, "Add new data file");
 
         ImGui.SetCursorPosX(14);
 
-        if (FCTrackerWidgets.IconButton(FontAwesomeIcon.SyncAlt, FCTrackerTheme.AccentBlueDim, FCTrackerTheme.AccentBlue))
+        if (FCTrackerWidgets.IconButton(FontAwesomeIcon.SyncAlt, "DataRefresh", FCTrackerTheme.AccentBlueDim, FCTrackerTheme.AccentBlue))
             Configuration.Instance.RefreshImportedData();
         ImGui.SameLine();
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, "Refresh Data");

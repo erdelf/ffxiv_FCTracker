@@ -45,11 +45,11 @@ public static class FCTrackerWidgets
             return ImGui.Button(text);
     }
 
-    public static bool IconButton(FontAwesomeIcon icon, Vector4? color = null, Vector4? textColor = null)
+    public static bool IconButton(FontAwesomeIcon icon, string id, Vector4? color = null, Vector4? textColor = null)
     {
         using (ImRaii.PushColor(ImGuiCol.Button, color ?? FCTrackerTheme.ButtonDefault))
         using (ImRaii.PushColor(ImGuiCol.Text, textColor ?? FCTrackerTheme.TextPrimary))
         using (ImRaii.PushFont(UiBuilder.IconFont))
-            return ImGui.Button(icon.ToIconString(), new Vector2(28, 0));
+            return ImGui.Button($"{icon.ToIconString()}###{id}", new Vector2(28, 0));
     }
 }
