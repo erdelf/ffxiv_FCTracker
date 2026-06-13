@@ -227,6 +227,7 @@ public class DataImportConfig
     public bool Enabled { get; set; }
     public required string Path { get; set; }
 
+    [JsonIgnore]
     public GatheredData? Data;
 
     public GatheredData? LoadData()

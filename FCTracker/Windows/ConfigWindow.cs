@@ -5,6 +5,7 @@ using Dalamud.Bindings.ImPlot;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using ECommons.DalamudServices;
 using ECommons.Interop;
 using FCTracker.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Input;
@@ -130,11 +131,19 @@ public class ConfigWindow : Window, IDisposable
 
     private static void NewImportData(OpenFileName ofn)
     {
-        Configuration.Instance.DataImportConfig.Add(new DataImportConfig
-                                                    {
-                                                        Path    = ofn.file,
-                                                        Enabled = true
-                                                    });
-        Configuration.Instance.Save();
+        try
+        {
+
+            Configuration.Instance.DataImportConfig.Add(new DataImportConfig
+                                                        {
+                                                            Path    = ofn.file,
+                                                            Enabled = false
+                                                        });
+            Configuration.Instance.Save();
+        }
+        catch (Exception e)
+        {
+            Svc.Log.Error(e, $"Error occurred while loading data");
+        }
     }
 }
