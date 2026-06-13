@@ -57,7 +57,7 @@ public class AllFCsView : IFCView
                                       ImGuiTableFlags.SizingFixedFit |
                                       ImGuiTableFlags.Resizable;
 
-        using var table = ImRaii.Table("##FCTable", 6, flags);
+        using var table = ImRaii.Table("##FCTable", 7, flags);
         if (!table.Success)
             return;
 
