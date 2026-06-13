@@ -359,6 +359,7 @@ public class FCData
     public DateTime     FoundingDate { get; set; } // 30 days needed for Housing
     public HashSet<ulong> MemberCIDs { get; set; } = [];
 
+    [JsonProperty]
     private ARData? autoRetainerData;
 
     [JsonIgnore]
