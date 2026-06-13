@@ -233,16 +233,24 @@ public class DataImportConfig
     {
         if (!this.Enabled)
             return null;
-
-        if(File.Exists(this.Path))
+        try
         {
-            string json;
-            using (StreamReader streamReader = new(this.Path, Encoding.UTF8))
-                json = streamReader.ReadToEnd();
 
-            Configuration? node    = JsonConvert.DeserializeObject<Configuration>(json);
-            if (node?.GatheredData != null)
-                return this.Data = node.GatheredData with { ImportSourceConfig = this };
+            if(File.Exists(this.Path))
+            {
+                string json;
+                using (StreamReader streamReader = new(this.Path, Encoding.UTF8))
+                    json = streamReader.ReadToEnd();
+
+                Configuration? node    = JsonConvert.DeserializeObject<Configuration>(json);
+                if (node?.GatheredData != null)
+                    return this.Data = node.GatheredData with { ImportSourceConfig = this };
+            }
+        }
+        catch (Exception e)
+        {
+            Svc.Log.Error(e, $"Error occurred while loading data from {this.Path}");
+            return null;
         }
         return null;
     }
