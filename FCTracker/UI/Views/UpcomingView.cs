@@ -87,7 +87,7 @@ public class UpcomingView : IFCView
                                       ImGuiTableFlags.SizingFixedFit |
                                       ImGuiTableFlags.Resizable;
 
-        using ImRaii.TableDisposable table = ImRaii.Table("##UpcomingTable", 4, flags);
+        using ImRaii.TableDisposable table = ImRaii.Table("##UpcomingTable", 5, flags);
         if (!table.Success) 
             return;
         ImGui.TableSetupScrollFreeze(3, 1);

@@ -104,7 +104,7 @@ public class CharsView : IFCView
                                       ImGuiTableFlags.Resizable;
 
 
-        using var table = ImRaii.Table("##CharTable", 5, flags);
+        using var table = ImRaii.Table("##CharTable", 6, flags);
         if (!table.Success) 
             return;
 
