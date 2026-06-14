@@ -75,22 +75,20 @@ public class Configuration
         foreach (DataImportConfig config in this.DataImportConfig)
         {
             GatheredData? data = config.LoadData();
-            if (data.HasValue)
-                this.ImportedData.Add(data.Value);
+            if (data != null)
+                this.ImportedData.Add(data);
         }
 
         ARDataBust();
     }
 
     public static void ARDataBust() => arData = null;
+    
+    public IEnumerable<CharData> AllCharData =>
+        this.GatheredData.CharByCID.Values.Concat(this.ImportedData.SelectMany(c => c.CharByCID.Values));
 
-    public IEnumerable<FCData> AllFCData
-    {
-        get
-        {
-            return this.GatheredData.FCData.Values.Concat(this.ImportedData.SelectMany(c => c.FCData.Values));
-        }
-    }
+    public IEnumerable<FCData> AllFCData => 
+        this.GatheredData.FCData.Values.Concat(this.ImportedData.SelectMany(c => c.FCData.Values));
 
     public ulong? GetFCIdForCID(ulong cid) => 
         this.GatheredData.CharByCID.TryGetValue(cid, out CharData charData) ? charData.FC : null;
@@ -245,7 +243,17 @@ public class DataImportConfig
 
                 Configuration? node    = JsonConvert.DeserializeObject<Configuration>(json);
                 if (node?.GatheredData != null)
-                    return this.Data = node.GatheredData with { ImportSourceConfig = this };
+                {
+                    node.GatheredData.ImportSourceConfig = this;
+
+                    foreach (ulong fcID in node.GatheredData.FCData.Keys)
+                        node.GatheredData.FCData[fcID].SourceData = node.GatheredData;
+
+                    foreach (ulong cid in node.GatheredData.CharByCID.Keys)
+                        node.GatheredData.CharByCID[cid] = node.GatheredData.CharByCID[cid] with { SourceData = node.GatheredData };
+
+                    return this.Data = node.GatheredData;
+                }
             }
         }
         catch (Exception e)
@@ -258,7 +266,7 @@ public class DataImportConfig
 }
 
 [JsonObject(MemberSerialization.OptOut)]
-public struct GatheredData
+public class GatheredData
 {
     public GatheredData()
     {
@@ -283,6 +291,15 @@ public struct CharViewData
 [JsonObject(MemberSerialization.OptOut)]
 public struct CharData
 {
+    [JsonIgnore]
+    private GatheredData? sourceData;
+    [JsonIgnore]
+    public GatheredData SourceData
+    {
+        get => this.sourceData ??= Configuration.Instance.GatheredData;
+        set => this.sourceData = value;
+    }
+
     public required ulong        CID;
     public          string       Name;
     public          uint         WorldId;
@@ -346,6 +363,14 @@ public enum HousingStatusCategory
 [JsonObject(MemberSerialization.OptOut)]
 public class FCData
 {
+    [JsonIgnore]
+    private GatheredData? sourceData;
+    [JsonIgnore] 
+    public GatheredData SourceData { 
+        get => this.sourceData ??= Configuration.Instance.GatheredData;
+        set => this.sourceData = value;
+    }
+
     [JsonIgnore]
     public World? World => field ??= ExcelWorldHelper.Get(this.HomeWorldId);
     public ulong   Id           { get; set; }
@@ -491,7 +516,7 @@ public class FCData
 
     [JsonIgnore]
     public bool MasterAvailable =>
-        this.masterAvailable ??= Configuration.Instance.GatheredData.CharByCID.Any(ch => this.MemberCIDs.Contains(ch.Value.CID) && ch.Value.Name == this.MasterString);
+        this.masterAvailable ??= this.SourceData.ImportSourceConfig == null && Configuration.Instance.GatheredData.CharByCID.Any(ch => this.MemberCIDs.Contains(ch.Value.CID) && ch.Value.Name == this.MasterString);
 
     public void AddMember(ulong cid)
     {

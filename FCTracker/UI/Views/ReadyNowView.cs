@@ -79,7 +79,7 @@ public class ReadyNowView : IFCView
 
         ImGui.TableNextColumn();
 
-        bool selectable = fc.MemberCIDs.Count != 0;
+        bool selectable = fc.SourceData.ImportSourceConfig == null && fc.MemberCIDs.Count != 0;
 
         if (selectable)
         {

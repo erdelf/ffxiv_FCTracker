@@ -129,7 +129,7 @@ public class AllFCsView : IFCView
 
         ImGui.TableNextColumn();
 
-        bool masterSelectable = fc.MasterAvailable;
+        bool masterSelectable = fc.SourceData.ImportSourceConfig == null && fc.MasterAvailable;
 
         if (masterSelectable)
         {
@@ -162,7 +162,7 @@ public class AllFCsView : IFCView
 
     private static void DrawFCNameCell(FCData fc)
     {
-        bool selectable = fc.MemberCIDs.Count != 0;
+        bool selectable = fc.SourceData.ImportSourceConfig == null && fc.MemberCIDs.Count != 0;
 
         if (selectable)
         {
@@ -185,9 +185,9 @@ public class AllFCsView : IFCView
 
     private static void DrawStatusCell(FCData fc)
     {
-        bool clickable = fc.MemberCIDs.Count != 0 && fc.HasHouse;
+        bool selectable = fc.SourceData.ImportSourceConfig == null && fc.MemberCIDs.Count != 0 && fc.HasHouse;
 
-        if (clickable)
+        if (selectable)
         {
             ImGui.Selectable("##FCStatusCell" + fc.Id);
             ImGui.SetItemAllowOverlap();
@@ -216,7 +216,7 @@ public class AllFCsView : IFCView
                 ECommonsIPC.Lifestream.GoToHousingAddress(($"{fc.WorldName}-{fc.Id}", (int) fc.HomeWorldId, (int)fc.House.City, fc.House.Ward+1, 0, fc.House.Plot+1, -1, false, false, string.Empty));
         }
 
-        if (clickable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
+        if (selectable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
             if(Svc.ClientState.IsLoggedIn)
             {
                 TeleportToFCHouse();

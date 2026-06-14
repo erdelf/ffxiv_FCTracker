@@ -168,9 +168,14 @@ public class CharsView : IFCView
 
         ImGui.TableNextColumn();
 
-        bool selectable = ImGui.Selectable("##CharCell" + ch.CID);
-        ImGui.SetItemAllowOverlap();
-        ImGui.SameLine(0, 0);
+        bool selectable = false;
+
+        if (ch.SourceData.ImportSourceConfig == null)
+        {
+            selectable = ImGui.Selectable("##CharCell" + ch.CID);
+            ImGui.SetItemAllowOverlap();
+            ImGui.SameLine(0, 0);
+        }
 
         ImGuiHelpers.CompileSeStringWrapped($"<icon({(uint)PlayerHelper.GetGCFontIcon(ch.GrandCompany)})>");
 
@@ -191,7 +196,7 @@ public class CharsView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGatheringLevelColor(ch.HighestLevelGathering), ch.HighestLevelGathering.ToString());
         ImGui.TableNextColumn();
 
-        if (ECommonsIPC.AllaganTools.Available)
+        if (ECommonsIPC.AllaganTools.Available && ch.SourceData.ImportSourceConfig == null)
         {
             uint gilCount = ECommonsIPC.AllaganTools.ItemCount(1u, ch.CID, -1);
             FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGilColor(gilCount), gilCount.ToString("##,#"));
