@@ -79,7 +79,7 @@ public class UpcomingView : IFCView
         List<FCData> nextWeek = upcomingFCs.Where(fc => fc.EligibilityDate > thisWeekEnd  && fc.EligibilityDate <= nextWeekEnd).ToList();
 
         List<IGrouping<string, FCData>> later = upcomingFCs.Where(fc => fc.EligibilityDate > nextWeekEnd)
-                                                           .GroupBy(fc => fc.FoundingDate != default ? $"In {(fc.EligibilityDate - now).Days / 7} weeks" : "Unregistered")
+                                                           .GroupBy(fc => fc.FoundingDate != default ? $"In {(fc.EligibilityDate - now).Days / 7 + 1} weeks" : "Unregistered")
                                                            .ToList();
 
         const ImGuiTableFlags flags = ImGuiTableFlags.ScrollY        |
