@@ -196,15 +196,13 @@ public class CharsView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGatheringLevelColor(ch.HighestLevelGathering), ch.HighestLevelGathering.ToString());
         ImGui.TableNextColumn();
 
-        if (ECommonsIPC.AllaganTools.Available && ch.SourceData.ImportSourceConfig == null)
+        
+        uint gilCount = ch.Gil;
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGilColor(gilCount), gilCount.ToString("##,#"));
+        if (ThreadLoadImageHandler.TryGetIconTextureWrap(ExcelItemHelper.Get(1)!.Value.Icon, false, out IDalamudTextureWrap? tex))
         {
-            uint gilCount = ECommonsIPC.AllaganTools.ItemCount(1u, ch.CID, -1);
-            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGilColor(gilCount), gilCount.ToString("##,#"));
-            if (ThreadLoadImageHandler.TryGetIconTextureWrap(ExcelItemHelper.Get(1)!.Value.Icon, false, out IDalamudTextureWrap? tex))
-            {
-                ImGui.SameLine(0, 0);
-                ImGui.Image(tex.Handle, new Vector2(ImGuiHelpers.GetButtonSize("X").Y));
-            }
+            ImGui.SameLine(0, 0);
+            ImGui.Image(tex.Handle, new Vector2(ImGuiHelpers.GetButtonSize("X").Y));
         }
 
         ImGui.TableNextColumn();

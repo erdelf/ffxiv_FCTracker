@@ -305,6 +305,23 @@ public struct CharData
     public          uint         WorldId;
     public          ulong?       FC;
 
+    [JsonProperty]
+    private uint gil;
+    [JsonIgnore]
+    public uint Gil
+    {
+        get
+        {
+            if (ECommonsIPC.AllaganTools.Available && this.SourceData.ImportSourceConfig == null && EzThrottler.Throttle("GilCheck_" + this.CID, 300_0000))
+            {
+                this.gil = ECommonsIPC.AllaganTools.ItemCount(1u, this.CID, -1);
+                Configuration.Instance.UpdateCharData(this);
+            }
+
+            return this.gil;
+        }
+    }
+
     public GrandCompany GrandCompany;
     public uint         GrandCompanyRank;
 
