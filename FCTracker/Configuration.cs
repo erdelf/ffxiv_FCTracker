@@ -5,8 +5,11 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameHelpers;
+using ECommons.IPC;
+using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
@@ -21,7 +24,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using ECommons.DalamudServices;
 using UI;
 using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
 
@@ -102,6 +104,12 @@ public class Configuration
             if(this.GatheredData.CharByCID.TryGetValue(Player.CID, out CharData charData))
                 if(charData.FC.HasValue)
                     this.GatheredData.FCData.Remove(charData.FC.Value);
+    }
+
+    public void UpdateCharData(CharData ch)
+    {
+        this.GatheredData.CharByCID[ch.CID] = ch;
+        this.Save();
     }
 
     public void UpdateCurrentCharData()
@@ -292,12 +300,10 @@ public struct CharViewData
 public struct CharData
 {
     [JsonIgnore]
-    private GatheredData? sourceData;
-    [JsonIgnore]
     public GatheredData SourceData
     {
-        get => this.sourceData ??= Configuration.Instance.GatheredData;
-        set => this.sourceData = value;
+        get => field ??= Configuration.Instance.GatheredData;
+        set;
     }
 
     public required ulong        CID;
@@ -348,9 +354,11 @@ public struct CharData
                 return this.LeveAllowances;
 
             TimeSpan timePassed = DateTime.UtcNow - this.LeveAllowanceTime;
-            if (timePassed.Ticks <= 0)
-                return this.LeveAllowances-3;
-            return this.LeveAllowances + (int)(timePassed.TotalHours / 12);
+            return timePassed.Ticks <= 0 ?
+                       this.LeveAllowances - 3 :
+                       timePassed.TotalDays > 30 ?
+                           100 :
+                           Math.Min(100, this.LeveAllowances + (int)(timePassed.TotalHours / 12));
         }
     }
 
@@ -570,6 +578,7 @@ public class FCData
             $"{(this.House!.LastVisited != null ? $"Last Visited: {(this.House.DaysSinceLastVisit > 0 ? $"{this.House.DaysSinceLastVisit}d ago" : "Today")}" : "Never visited")}" :
             string.Empty;
 
+    [JsonIgnore]
     public bool LoggedIn =>
         FCTrackerPlugin.LoggedInCID.HasValue && this.MemberCIDs.Contains(FCTrackerPlugin.LoggedInCID.Value);
 }
