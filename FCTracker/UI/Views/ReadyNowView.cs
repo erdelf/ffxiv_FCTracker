@@ -83,7 +83,7 @@ public class ReadyNowView : IFCView
 
         if (selectable)
         {
-            ImGui.Selectable("##FCCell" + fc.Id);
+            selectable = ImGui.Selectable("##FCCell" + fc.Id);
             ImGui.SetItemAllowOverlap();
             ImGui.SameLine(0, 0);
         }
@@ -99,7 +99,7 @@ public class ReadyNowView : IFCView
             FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentGreen, $"+{daysEligible}d");
         }
 
-        if (selectable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
+        if (selectable)
             ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.GatheredData.CharByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
 
 		ImGui.TableNextColumn();
