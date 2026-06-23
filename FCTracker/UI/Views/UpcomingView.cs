@@ -14,12 +14,18 @@ public class UpcomingView : IFCView
 {
     public string Id => "upcoming";
 
+    private static readonly Dictionary<string, string> HeaderTooltips = new()
+    {
+        ["Days"] = "House bidding requires 30 days to have passed",
+        ["GC"]      = "House bidding requires GC rank 6"
+    };
+
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx) =>
         ("Upcoming Eligibility", $"{ctx.Data.GetUpcomingFCs().Count} FCs pending");
 
     public void Draw(FCViewContext ctx)
     {
-        using var scrollArea = ImRaii.Child("##UpcomingScroll", Vector2.Zero, false);
+        using ImRaii.ChildDisposable scrollArea = ImRaii.Child("##UpcomingScroll", Vector2.Zero, false);
         if (!scrollArea.Success) 
             return;
 
@@ -37,8 +43,9 @@ public class UpcomingView : IFCView
         using (ImRaii.PushColor(ImGuiCol.ChildBg, FCTrackerTheme.AccentGreenDim))
         using (ImRaii.PushColor(ImGuiCol.Border, FCTrackerTheme.AccentGreen with { W = 0.3f }))
         {
-            using var banner = ImRaii.Child("##ReadyBanner", new Vector2(ImGui.GetContentRegionAvail().X - 28, 36), true);
-            if (!banner.Success) return;
+            using ImRaii.ChildDisposable banner = ImRaii.Child("##ReadyBanner", new Vector2(ImGui.GetContentRegionAvail().X - 28, 36), true);
+            if (!banner.Success) 
+                return;
 
             ImGui.SetCursorPos(new Vector2(12, 8));
 
@@ -99,7 +106,8 @@ public class UpcomingView : IFCView
 
         using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
         using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.TextSecondary))
-            ImGui.TableHeadersRow();
+            FCTrackerWidgets.TableHeadersRowWithTooltips(HeaderTooltips);
+
         if (timeDone.Count != 0)
             DrawSection("TIME DONE", timeDone);
 		if (thisWeek.Count != 0)

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ECommons;
 using ECommons.Automation.NeoTaskManager;
@@ -19,7 +18,11 @@ public class AllFCsView : IFCView
 
     private static readonly Dictionary<string, string> HeaderTooltips = new()
     {
-        ["Members"] = "this is an example",
+        ["Free Company"] = "House bidding requires your FC to have GC rank 6\n\nClick to log into a char belonging to the FC",
+        ["Members"] = "House bidding requires 4 members",
+        ["Founded"] = "House bidding requires 30 days to have passed since joining the FC\nFor simplicity it is assumed you joined the FC by creating it",
+        ["Status"] = "The state of the house of the FC.\nClick to walk to the house if available",
+        ["Demolition"] = "Houses are demolished if not visited in 45 days"
     };
 
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx)

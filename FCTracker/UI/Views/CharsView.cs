@@ -20,6 +20,15 @@ public class CharsView : IFCView
 {
     public string Id => "chars";
 
+    private static readonly Dictionary<string, string> HeaderTooltips = new()
+    {
+        ["Char"] = "Expert Delivery requires GC rank 6\nClick to log in",
+        ["Combat Lvl"]    = "Highest combat class/job\nRecommended to go to 30 to unlock job and chocobo",
+        ["Gathering Lvl"] = "Highest gathering class\nRetainers become self-sufficient at around level 55",
+        ["Gil"]           = "Requires Allagan Tools\nGil is required for the FC founding, house bidding/building and buying a workshop.",
+        ["Leves"]         = "Rough estimation\nLeves can be used for GC rank up via GC leves and FSH levelup in Costa del Sol"
+    };
+
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx) =>
         ("Characters", $"{GetCharacters(ctx.Data).Count} Chars pending");
 
@@ -104,7 +113,7 @@ public class CharsView : IFCView
                                       ImGuiTableFlags.Resizable;
 
 
-        using var table = ImRaii.Table("##CharTable", 6, flags);
+        using ImRaii.TableDisposable table = ImRaii.Table("##CharTable", 6, flags);
         if (!table.Success) 
             return;
 
@@ -120,7 +129,7 @@ public class CharsView : IFCView
 
         using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
         using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.TextSecondary))
-            ImGui.TableHeadersRow();
+            FCTrackerWidgets.TableHeadersRowWithTooltips(HeaderTooltips);
 
         foreach (IGrouping<World, CharData> charGroup in charWorlds)
             DrawSection(charGroup.Key, charGroup.ToList());
