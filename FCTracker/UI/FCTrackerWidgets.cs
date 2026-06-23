@@ -2,8 +2,10 @@ namespace FCTracker.UI;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.Interop;
+using System.Collections.Generic;
 using System.Numerics;
 
 public static class FCTrackerWidgets
@@ -51,5 +53,34 @@ public static class FCTrackerWidgets
         using (ImRaii.PushColor(ImGuiCol.Text, textColor ?? FCTrackerTheme.TextPrimary))
         using (ImRaii.PushFont(UiBuilder.IconFont))
             return ImGui.Button($"{icon.ToIconString()}###{id}", new Vector2(28, 0));
+    }
+
+    public static void TableHeadersRowWithTooltips(IReadOnlyDictionary<string, string> tooltips)
+    {
+        ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
+
+        int columnCount = ImGui.TableGetColumnCount();
+        for (int column = 0; column < columnCount; column++)
+        {
+            if (!ImGui.TableSetColumnIndex(column))
+                continue;
+
+            string name = ImGui.TableGetColumnName(column);
+
+            ImGui.PushID(column);
+
+            if (tooltips.TryGetValue(name, out string? tip))
+            {
+                ImGui.TextUnformatted(name);
+                ImGui.SameLine(0, 4);
+                ImGuiComponents.HelpMarker(tip);
+            }
+            else
+            {
+                ImGui.TableHeader(name);
+            }
+
+            ImGui.PopID();
+        }
     }
 }
