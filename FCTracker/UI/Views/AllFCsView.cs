@@ -17,6 +17,11 @@ public class AllFCsView : IFCView
 {
     public string Id => "all";
 
+    private static readonly Dictionary<string, string> HeaderTooltips = new()
+    {
+        ["Members"] = "this is an example",
+    };
+
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx)
     {
         IReadOnlyList<FCData> fcs = ctx.GetFilteredFCs();
@@ -72,7 +77,7 @@ public class AllFCsView : IFCView
 
         using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
         using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.TextSecondary))
-            ImGui.TableHeadersRow();
+            FCTrackerWidgets.TableHeadersRowWithTooltips(HeaderTooltips);
 
         string? currentWorld = null;
 
