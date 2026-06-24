@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml;
 using UI;
 using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
 
@@ -177,6 +176,13 @@ public class Configuration
             SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
 
             fcData.Tag = seString.GetText();
+        }
+
+        NumberArrayData* numberArrayData = RaptureAtkModule.Instance()->GetNumberArrayData(53);
+        if (numberArrayData->Size > 13)
+        {
+            int i = numberArrayData->IntArray[14];
+            fcData.FCPoints = i;
         }
 
         HouseId houseId = HousingManager.GetOwnedHouseId(EstateType.FreeCompanyEstate);
@@ -398,16 +404,17 @@ public class FCData
 
     [JsonIgnore]
     public World? World => field ??= ExcelWorldHelper.Get(this.HomeWorldId);
-    public ulong   Id           { get; set; }
-    public string FCName       { get; set; } = string.Empty;
-    public string Tag          { get; set; } = string.Empty;
-    public uint    TotalMembers { get; set; }
-    public string       MasterString { get; set; } = string.Empty;
-    public uint         HomeWorldId  { get; set; }
-    public GrandCompany GrandCompany { get; set; }
-    public uint         Rank         { get; set; } // 6 needed for Housing
-    public DateTime     FoundingDate { get; set; } // 30 days needed for Housing
-    public HashSet<ulong> MemberCIDs { get; set; } = [];
+    public ulong          Id           { get; set; }
+    public string         FCName       { get; set; } = string.Empty;
+    public string         Tag          { get; set; } = string.Empty;
+    public uint           TotalMembers { get; set; }
+    public string         MasterString { get; set; } = string.Empty;
+    public uint           HomeWorldId  { get; set; }
+    public GrandCompany   GrandCompany { get; set; }
+    public uint           Rank         { get; set; }
+    public DateTime       FoundingDate { get; set; }
+    public int            FCPoints     { get; set; }
+    public HashSet<ulong> MemberCIDs   { get; set; } = [];
 
     [JsonProperty]
     private ARData? autoRetainerData;

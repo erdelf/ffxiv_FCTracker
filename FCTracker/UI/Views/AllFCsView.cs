@@ -19,10 +19,11 @@ public class AllFCsView : IFCView
     private static readonly Dictionary<string, string> HeaderTooltips = new()
     {
         ["Free Company"] = "House bidding requires your FC to have GC rank 6\n\nClick to log into a char belonging to the FC",
-        ["Members"] = "House bidding requires 4 members",
-        ["Founded"] = "House bidding requires 30 days to have passed since joining the FC\nFor simplicity it is assumed you joined the FC by creating it",
-        ["Status"] = "The state of the house of the FC.\nClick to walk to the house if available",
-        ["Demolition"] = "Houses are demolished if not visited in 45 days"
+        ["Members"]      = "House bidding requires 4 members",
+        ["Founded"]      = "House bidding requires 30 days to have passed since joining the FC\nFor simplicity it is assumed you joined the FC by creating it",
+        ["FC Points"]    = "FC points are required for fuel and the submarine licenses\n99.900 are required for one stack of fuel\n160.000 are required for 16 Dive credits for all 4 submarines.",
+        ["Status"]       = "The state of the house of the FC.\nClick to walk to the house if available",
+        ["Demolition"]   = "Houses are demolished if not visited in 45 days"
     };
 
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx)
@@ -65,7 +66,7 @@ public class AllFCsView : IFCView
                                       ImGuiTableFlags.SizingFixedFit |
                                       ImGuiTableFlags.Resizable;
 
-        using var table = ImRaii.Table("##FCTable", 7, flags);
+        using var table = ImRaii.Table("##FCTable", 8, flags);
         if (!table.Success)
             return;
 
@@ -74,6 +75,7 @@ public class AllFCsView : IFCView
         ImGui.TableSetupColumn("Master",       ImGuiTableColumnFlags.WidthFixed, 140);
         ImGui.TableSetupColumn("Members",      ImGuiTableColumnFlags.WidthFixed, 60);
         ImGui.TableSetupColumn("Founded",      ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("FC Points",    ImGuiTableColumnFlags.WidthFixed, 80);
         ImGui.TableSetupColumn("Status",       ImGuiTableColumnFlags.WidthFixed, 140);
         ImGui.TableSetupColumn("Demolition",   ImGuiTableColumnFlags.WidthFixed, 60);
         ImGui.TableSetupColumn("##Spacer",     ImGuiTableColumnFlags.WidthStretch);
@@ -158,6 +160,9 @@ public class AllFCsView : IFCView
 
         ImGui.TableNextColumn();
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, fc.FoundingDate == default ? "—" : $"{fc.DaysSinceFounded}d ago");
+
+        ImGui.TableNextColumn();
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetFCPointColor(fc.FCPoints), fc.FCPoints.ToString("N0"));
 
         ImGui.TableNextColumn();
         DrawStatusCell(fc);

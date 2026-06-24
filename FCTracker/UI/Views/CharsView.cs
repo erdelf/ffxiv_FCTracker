@@ -25,7 +25,7 @@ public class CharsView : IFCView
         ["Char"] = "Expert Delivery requires GC rank 6\nClick to log in",
         ["Combat Lvl"]    = "Highest combat class/job\nRecommended to go to 30 to unlock job and chocobo",
         ["Gathering Lvl"] = "Highest gathering class\nRetainers become self-sufficient at around level 55",
-        ["Gil"]           = "Requires Allagan Tools\nGil is required for the FC founding, house bidding/building and buying a workshop.",
+        ["Gil"]           = "Requires Allagan Tools\nGil is required for the FC founding, house bidding/building, buying a workshop\nand potentially sub parts and repair materials.",
         ["Leves"]         = "Rough estimation\nLeves can be used for GC rank up via GC leves and FSH levelup in Costa del Sol"
     };
 

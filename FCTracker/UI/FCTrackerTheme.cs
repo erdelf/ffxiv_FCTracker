@@ -139,6 +139,14 @@ public static class FCTrackerTheme
         >= 4 => AccentYellow,
         _ => TextSecondary
     };
+    
+    public static Vector4 GetFCPointColor(int points) => points switch
+    {
+        >= 160_000 => AccentGreen,
+        >=  99_900 => AccentYellow,
+        >=  10_000 => AccentOrange,
+        _ => TextSecondary
+    };
 
     public static Vector4 GetPlayerCombatLevelColor(short level) => level switch
     {

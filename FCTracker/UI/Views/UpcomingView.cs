@@ -16,8 +16,9 @@ public class UpcomingView : IFCView
 
     private static readonly Dictionary<string, string> HeaderTooltips = new()
     {
-        ["Days"] = "House bidding requires 30 days to have passed",
-        ["GC"]      = "House bidding requires GC rank 6"
+        ["Days"]      = "House bidding requires 30 days to have passed",
+        ["GC"]        = "House bidding requires GC rank 6",
+        ["FC Points"] = "FC points are required for fuel and the submarine licenses\n99.900 are required for one stack of fuel\n160.000 are required for 16 Dive credits for all 4 submarines.",
     };
 
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx) =>
@@ -38,7 +39,8 @@ public class UpcomingView : IFCView
     private static void DrawReadyBanner(FCViewContext ctx)
     {
         int readyCount = ctx.Data.GetReadyCount();
-        if (readyCount == 0) return;
+        if (readyCount == 0) 
+            return;
 
         using (ImRaii.PushColor(ImGuiCol.ChildBg, FCTrackerTheme.AccentGreenDim))
         using (ImRaii.PushColor(ImGuiCol.Border, FCTrackerTheme.AccentGreen with { W = 0.3f }))
@@ -94,15 +96,16 @@ public class UpcomingView : IFCView
                                       ImGuiTableFlags.SizingFixedFit |
                                       ImGuiTableFlags.Resizable;
 
-        using ImRaii.TableDisposable table = ImRaii.Table("##UpcomingTable", 5, flags);
+        using ImRaii.TableDisposable table = ImRaii.Table("##UpcomingTable", 6, flags);
         if (!table.Success) 
             return;
         ImGui.TableSetupScrollFreeze(3, 1);
-        ImGui.TableSetupColumn("Date",     ImGuiTableColumnFlags.WidthFixed, 90);
-        ImGui.TableSetupColumn("Days",     ImGuiTableColumnFlags.WidthFixed, 45);
-        ImGui.TableSetupColumn("GC",     ImGuiTableColumnFlags.WidthFixed, 45);
-		ImGui.TableSetupColumn("FC",       ImGuiTableColumnFlags.WidthFixed, 500);
-        ImGui.TableSetupColumn("##Spacer", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Date",      ImGuiTableColumnFlags.WidthFixed, 90);
+        ImGui.TableSetupColumn("Days",      ImGuiTableColumnFlags.WidthFixed, 45);
+        ImGui.TableSetupColumn("GC",        ImGuiTableColumnFlags.WidthFixed, 45);
+        ImGui.TableSetupColumn("FC Points", ImGuiTableColumnFlags.WidthFixed, 80);
+		ImGui.TableSetupColumn("FC",        ImGuiTableColumnFlags.WidthFixed, 500);
+        ImGui.TableSetupColumn("##Spacer",  ImGuiTableColumnFlags.WidthStretch);
 
         using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
         using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.TextSecondary))
@@ -179,8 +182,11 @@ public class UpcomingView : IFCView
 		FCTrackerWidgets.ColoredText(FCTrackerTheme.GetRankColor(fc.Rank), $"{fc.Rank}");
 
 		ImGui.TableNextColumn();
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetFCPointColor(fc.FCPoints), fc.FCPoints.ToString("N0"));
 
-		bool selectable = fc.SourceData.ImportSourceConfig == null && fc.MemberCIDs.Count != 0;
+        ImGui.TableNextColumn();
+
+        bool selectable = fc.SourceData.ImportSourceConfig == null && fc.MemberCIDs.Count != 0;
 
         if (selectable)
         {
