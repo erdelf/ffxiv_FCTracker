@@ -157,20 +157,11 @@ public class Configuration
 
         fcData.MemberCIDs.Add(Player.CID);
 
+        int date = AgentFreeCompanyProfile.Instance()->FoundationDate;
+        fcData.FoundingDate = DateTimeOffset.FromUnixTimeSeconds(date).DateTime;
 
 
-        StringArrayData* arrayData = RaptureAtkModule.Instance()->GetStringArrayData(49);
-        if (arrayData->Size > 4)
-        {
-            CStringPointer x        = arrayData->StringArray[6];
-            SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
-            string         text     = seString.GetText();
-
-            if (DateTime.TryParse(text, out DateTime dt))
-                fcData.FoundingDate = dt;
-        }
-
-        arrayData = RaptureAtkModule.Instance()->GetStringArrayData(48);
+        StringArrayData* arrayData = RaptureAtkModule.Instance()->GetStringArrayData(48);
         if (arrayData->Size > 1)
         {
             CStringPointer x        = arrayData->StringArray[2];
@@ -205,7 +196,6 @@ public class Configuration
         fcData.TotalMembers = fcProxy->TotalMembers;
         fcData.MasterString = fcProxy->MasterString;
         fcData.Rank         = fcProxy->Rank;
-        
 
         this.GatheredData.FCData[fcProxy->Id] = fcData;
 

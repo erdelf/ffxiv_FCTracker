@@ -256,8 +256,47 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                                      }
                                      return false;
                                  });
+        this.TaskManager.Enqueue(() =>
+                                 {
+                                     if (GenericHelpers.TryGetAddonByName("FreeCompany", out AtkUnitBase* fcAddon) && fcAddon->IsReady())
+                                     {
+                                         Callback.Fire(fcAddon, true, 0, 1u);
+                                         if (GenericHelpers.TryGetAddonByName("FreeCompanyStatus", out fcAddon) && fcAddon->IsReady())
+                                         {
+                                             Callback.Fire(fcAddon, true, -2);
+                                             return true;
+                                         }
+                                     }
+                                     return false;
+                                 }, "FC Member exec");
+        this.TaskManager.Enqueue(() => GenericHelpers.TryGetAddonByName("FreeCompanyMember", out AtkUnitBase* fcAddon) && fcAddon->IsReady(),                                    "FCMember check");
+        this.TaskManager.Enqueue(() => GenericHelpers.TryGetAddonByName("FreeCompanyMember", out AtkUnitBase* fcAddon) && fcAddon->GetComponentListById(24)->GetItemCount() > 0, "FCMember check 2");
+
+        this.TaskManager.Enqueue(() =>
+                                 {
+                                     if (GenericHelpers.TryGetAddonByName("FreeCompanyMember", out AtkUnitBase* fcAddon) && fcAddon->IsReady())
+                                     {
+                                         Callback.Fire(fcAddon, true, 3, 0u);
+                                         return true;
+                                     }
+                                     return false;
+                                 }, "FC Member Context exec");
+        this.TaskManager.Enqueue(() => GenericHelpers.TryGetAddonByName("ContextMenu", out AtkUnitBase* fcAddon) && fcAddon->IsReady(), "FCMember Context check");
+        this.TaskManager.Enqueue(() =>
+                                 {
+                                     if (GenericHelpers.TryGetAddonByName("ContextMenu", out AtkUnitBase* fcAddon) && fcAddon->IsReady())
+                                     {
+                                         Callback.Fire(fcAddon, true, 0, 3, 0u);
+                                         return true;
+                                     }
+                                     return false;
+                                 }, "FC Member Profile exec");
+        this.TaskManager.Enqueue(() => GenericHelpers.TryGetAddonByName("FreeCompanyProfile", out AtkUnitBase* fcAddon) && fcAddon->IsReady(), "FCMember Profile check");
+        this.TaskManager.Enqueue(() => AgentFreeCompanyProfile.Instance()->IsAddonShown());
+        this.TaskManager.Enqueue(() => AgentFreeCompanyProfile.Instance()->IsAddonReady());
         this.TaskManager.Enqueue(() => Configuration.Instance.UpdateCurrentFCData());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Hide());
+        this.TaskManager.Enqueue(() => AgentFreeCompanyProfile.Instance()->Hide());
     }
 
     public       void   ToggleConfigUi() => this.ConfigWindow.Toggle();
