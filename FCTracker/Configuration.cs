@@ -12,6 +12,7 @@ using ECommons.IPC;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using InteropGenerator.Runtime;
@@ -178,20 +179,15 @@ public class Configuration
             fcData.Tag = seString.GetText();
         }
 
-        NumberArrayData* numberArrayData = RaptureAtkModule.Instance()->GetNumberArrayData(53);
-        if (numberArrayData->Size > 13)
-        {
-            int i = numberArrayData->IntArray[14];
-            fcData.FCPoints = i;
-        }
+        fcData.FCPoints = *(int*)((nint)AgentModule.Instance()->GetAgentByInternalId(AgentId.FreeCompanyCreditShop) + 256);
 
         HouseId houseId = HousingManager.GetOwnedHouseId(EstateType.FreeCompanyEstate);
         if (houseId.Unit.Value < 255)
         {
             FCData.HouseInfo.ResidentialAetheryteKind? aetheryteKind = FCData.HouseInfo.GetResidentialAetheryteByTerritoryType(houseId.TerritoryTypeId);
-            if (!fcData.HasHouse                       ||
+            if (!fcData.HasHouse                        ||
                 fcData.House!.Ward != houseId.WardIndex ||
-                fcData.House.Plot != houseId.PlotIndex ||
+                fcData.House.Plot != houseId.PlotIndex  ||
                 fcData.House.City != aetheryteKind)
             {
                 FCData.HouseInfo houseInfo = new()
