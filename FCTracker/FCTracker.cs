@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using Windows;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
+using Dalamud.Utility;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -25,6 +26,8 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using InteropGenerator.Runtime;
+using Lumina.Excel.Sheets;
+using Lumina.Text.ReadOnly;
 using Callback = ECommons.Automation.Callback;
 
 [UsedImplicitly]
@@ -86,7 +89,6 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                                                    TimeLimitMS     = 10_000,
                                                    ShowDebug       = true
                                                });
-
 
             if (Svc.ClientState.IsLoggedIn)
                 this.ClientStateOnLogin();
@@ -292,15 +294,24 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                                  {
                                      if (GenericHelpers.TryGetAddonByName("ContextMenu", out AtkUnitBase* fcAddon) && fcAddon->IsReady())
                                      {
-                                         Callback.Fire(fcAddon, true, 0, 3, 0u);
-                                         return true;
+                                         ReadOnlySeString seString = Svc.Data.GetExcelSheet<Addon>()[2807].Text;
+
+                                         int entryCount = fcAddon->AtkValues[0].Int;
+                                         for (int i = 0; i < entryCount; i++)
+                                         {
+                                             if(fcAddon->AtkValues[8 + i].String.ExtractText() == seString.ExtractText())
+                                             {
+                                                 Callback.Fire(fcAddon, true, 0, i, 0u);
+                                                 return true;
+                                             }
+                                         }
                                      }
                                      return false;
                                  }, "FC Member Profile exec");
         this.TaskManager.Enqueue(() => GenericHelpers.TryGetAddonByName("FreeCompanyProfile", out AtkUnitBase* fcAddon) && fcAddon->IsReady(), "FCMember Profile check");
         this.TaskManager.Enqueue(() => AgentFreeCompanyProfile.Instance()->IsAddonShown());
         this.TaskManager.Enqueue(() => AgentFreeCompanyProfile.Instance()->IsAddonReady());
-        this.TaskManager.Enqueue(() => foundationDate != AgentFreeCompanyProfile.Instance()->FoundationDate, "FC Foundation Date Check", new TaskManagerConfiguration(500));
+        this.TaskManager.Enqueue(() => foundationDate != AgentFreeCompanyProfile.Instance()->FoundationDate, "FC Foundation Date Check", new TaskManagerConfiguration(2000));
 
         this.TaskManager.Enqueue(() => Configuration.Instance.UpdateCurrentFCData());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Hide());
