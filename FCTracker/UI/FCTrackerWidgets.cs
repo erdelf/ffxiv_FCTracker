@@ -55,6 +55,20 @@ public static class FCTrackerWidgets
             return ImGui.Button($"{icon.ToIconString()}###{id}", new Vector2(28, 0));
     }
 
+    public static void Tooltip(string tooltip)
+    {
+        if (ImGui.IsItemHovered())
+        {
+            using (ImRaii.Tooltip())
+            {
+                using (ImRaii.TextWrapPos(ImGui.GetFontSize() * 35.0f))
+                {
+                    ImGui.Text(tooltip);
+                }
+            }
+        }
+    }
+
     public static void TableHeadersRowWithTooltips(IReadOnlyDictionary<string, string> tooltips)
     {
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);

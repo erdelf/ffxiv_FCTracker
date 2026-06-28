@@ -1,8 +1,5 @@
 namespace FCTracker.UI.Views;
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using ECommons;
@@ -11,6 +8,10 @@ using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using ECommons.IPC;
 using NightmareUI.Censoring;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Numerics;
 
 public class AllFCsView : IFCView
 {
@@ -160,6 +161,8 @@ public class AllFCsView : IFCView
 
         ImGui.TableNextColumn();
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, fc.FoundingDate == default ? "—" : $"{fc.DaysSinceFounded}d ago");
+        if(fc.FoundingDate != default && ImGui.IsItemHovered())
+            FCTrackerWidgets.Tooltip(fc.FoundingDate.ToString(CultureInfo.CurrentCulture));
 
         ImGui.TableNextColumn();
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetFCPointColor(fc.FCPoints), fc.FCPoints.ToString("N0"));
