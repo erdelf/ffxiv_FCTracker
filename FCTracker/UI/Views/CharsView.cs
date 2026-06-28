@@ -25,8 +25,8 @@ public class CharsView : IFCView
         ["Char"] = "Expert Delivery requires GC rank 6\nClick to log in",
         ["Combat Lvl"]    = "Highest combat class/job\nRecommended to go to 30 to unlock job and chocobo",
         ["Gathering Lvl"] = "Highest gathering class\nRetainers become self-sufficient at around level 55",
-        ["Gil"]           = "Requires Allagan Tools\nGil is required for the FC founding, house bidding/building, buying a workshop\nand potentially sub parts and repair materials.",
-        ["Leves"]         = "Rough estimation\nLeves can be used for GC rank up via GC leves and FSH levelup in Costa del Sol"
+        ["Gil"]           = "Requires Allagan Tools\nGil is required for the FC founding, house bidding/building, buying a workshop\nand potentially sub parts and repair materials.\n15.000 required for FC registration\n4.2 million required at minimum for House + Workshop\n6 million at being eligible for housing is a good starting point",
+        ["Leves"]         = "Rough estimation\nLeves can be used for GC rank up via GC leves and FSH levelup in Costa del Sol\n71 leves required till GC rank 6 (Expert Delivery)\n100 leves typically used for FSH"
     };
 
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx) =>

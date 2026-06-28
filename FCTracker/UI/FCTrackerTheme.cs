@@ -174,9 +174,9 @@ public static class FCTrackerTheme
 
     public static Vector4 GetPlayerGilColor(uint gilCount) => gilCount switch
     {
-        >= 15_000 => AccentGreen,
-        >= 10_000 => AccentYellow,
-        >= 5_000 => AccentOrange,
+        >= 6_000_000 => AccentGreen,
+        >= 4_300_000 => AccentYellow,
+        >= 15_000 => AccentOrange,
         _ => TextSecondary
     };
 
