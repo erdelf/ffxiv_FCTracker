@@ -63,8 +63,6 @@ public class ReadyNowView : IFCView
 
     private static void DrawRow(FCData fc)
     {
-        int daysEligible = fc.DaysSinceFounded - 30;
-
         ImGui.TableNextRow();
         ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, fc.LoggedIn ? ImGui.GetColorU32(FCTrackerTheme.RowHighlightColor) : ImGui.GetColorU32(FCTrackerTheme.AccentGreenDim));
 
@@ -93,12 +91,6 @@ public class ReadyNowView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, fc.FCName);
         ImGui.SameLine(0, 10);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, $"· {fc.WorldName} · {fc.MasterString}");
-        if (daysEligible >= 0)
-        {
-            ImGui.SameLine(0, 10);
-            FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentGreen, $"+{daysEligible}d");
-        }
-
         if (selectable)
             ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.GatheredData.CharByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
 

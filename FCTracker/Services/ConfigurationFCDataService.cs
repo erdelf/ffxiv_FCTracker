@@ -27,8 +27,8 @@ public class ConfigurationFCDataService : IFCDataProvider
     public int GetTotalCount()        => Source.Count();
     public int GetReadyCount()        => Source.Count(fc => fc.IsEligible);
     public int GetUpcomingCount()     => Source.Count(fc => fc is { IsEligible: false, HasHouse: false });
-    public int GetPending7DayCount()  => Source.Count(fc => fc is { IsEligible: false, HasHouse: false, DaysUntilEligible: <= 7 and > 0 });
-    public int GetPending30DayCount() => Source.Count(fc => fc is { IsEligible: false, HasHouse: false, DaysUntilEligible: > 7 and <= 30 });
+    public int GetPending7DayCount()  => Source.Count(fc => fc is { IsEligible: false, HasHouse: false, TimeUntilEligible.TotalDays: <= 7 and > 0 });
+    public int GetPending30DayCount() => Source.Count(fc => fc is { IsEligible: false, HasHouse: false, TimeUntilEligible.TotalDays: > 7 and <= 30 });
 
     public IEnumerable<string> GetRegions() =>
         Source.Select(fc => fc.Region).Where(s => !string.IsNullOrEmpty(s)).Distinct().OrderBy(r => r);
@@ -76,7 +76,7 @@ public class ConfigurationFCDataService : IFCDataProvider
         List<FCData> list     = fcs.ToList();
         int          done     = list.Count(fc => fc.HasHouse);
         int          ready    = list.Count(fc => fc.IsEligible);
-        int          upcoming = list.Count(fc => fc is { IsEligible: false, HasHouse: false, DaysUntilEligible: <= 7 });
+        int          upcoming = list.Count(fc => fc is { IsEligible: false, HasHouse: false, TimeUntilEligible.TotalDays: <= 7 });
         return (done, ready, upcoming, list.Count);
     }
 }

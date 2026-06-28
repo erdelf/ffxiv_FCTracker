@@ -7,6 +7,7 @@ using ECommons.IPC;
 using NightmareUI.Censoring;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 
@@ -151,14 +152,14 @@ public class UpcomingView : IFCView
 
         bool hasDate = fc.FoundingDate != default;
 
-        int daysLeft = fc.DaysUntilEligible;
-        HousingStatusCategory category = daysLeft <= 3 ? HousingStatusCategory.Ready :
-                                         daysLeft <= 7 ? HousingStatusCategory.Soon :
+        TimeSpan timeLeft = fc.TimeUntilEligible;
+        HousingStatusCategory category = timeLeft.TotalDays <= 3 ? HousingStatusCategory.Ready :
+                                         timeLeft.TotalDays <= 7 ? HousingStatusCategory.Soon :
                                                          HousingStatusCategory.Waiting;
 
         Vector4 dotColor = FCTrackerTheme.GetStatusColor(category, false);
 
-        if (daysLeft <= 3)
+        if (timeLeft.TotalDays <= 3)
             ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FCTrackerTheme.AccentYellowDim));
 
         ImGui.TableNextColumn();
@@ -175,7 +176,11 @@ public class UpcomingView : IFCView
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 14);
 
         if(hasDate)
-            FCTrackerWidgets.ColoredText(dotColor, daysLeft <= 0 ? "DONE" : $"{daysLeft}d");
+        {
+            FCTrackerWidgets.ColoredText(dotColor, timeLeft.Ticks <= 0 ? "DONE" : $@"{@timeLeft:%d\d\ %h\h}");
+            if(ImGui.IsItemHovered())
+                FCTrackerWidgets.Tooltip((DateTime.Today + timeLeft).ToString(CultureInfo.CurrentCulture));
+        }
 
         ImGui.TableNextColumn();
 

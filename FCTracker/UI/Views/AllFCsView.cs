@@ -160,7 +160,7 @@ public class AllFCsView : IFCView
         FCTrackerWidgets.ColoredText(memberColor, fc.TotalMembers.ToString());
 
         ImGui.TableNextColumn();
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, fc.FoundingDate == default ? "—" : $"{fc.DaysSinceFounded}d ago");
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, fc.FoundingDate == default ? "—" : $"{fc.TimeSinceFounded:%d}d ago");
         if(fc.FoundingDate != default && ImGui.IsItemHovered())
             FCTrackerWidgets.Tooltip(fc.FoundingDate.ToString(CultureInfo.CurrentCulture));
 

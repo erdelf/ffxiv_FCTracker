@@ -524,24 +524,17 @@ public class FCData
         this.House != null;
 
     [JsonIgnore]
-    public int DaysSinceFounded => 
+    public TimeSpan TimeSinceFounded => 
         this.FoundingDate == default ? 
-            0 : 
-            (int)(DateTime.Now - this.FoundingDate).TotalDays;
+            TimeSpan.Zero : 
+            DateTime.Now - this.FoundingDate;
 
     [JsonIgnore]
-    public int DaysUntilEligible
-    {
-        get
-        {
-            int remaining = 30 - this.DaysSinceFounded;
-            return remaining > 0 ? remaining : 0;
-        }
-    }
+    public TimeSpan TimeUntilEligible => new TimeSpan(30, 0, 0, 0) - this.TimeSinceFounded;
 
     [JsonIgnore]
     public bool IsEligible => 
-        this.DaysSinceFounded >= 30 && this.Rank >= 6 && !this.HasHouse;
+        this.TimeSinceFounded.TotalDays >= 30 && this.Rank >= 6 && !this.HasHouse;
 
     [JsonIgnore]
     public DateTime EligibilityDate => 
@@ -571,7 +564,7 @@ public class FCData
             this.House!.GetVisitationStatus() : 
             this.IsEligible ? 
                 HousingStatusCategory.Ready : 
-                this.DaysUntilEligible <= 7 ? 
+                this.TimeUntilEligible.TotalDays <= 7 ? 
                     HousingStatusCategory.Soon : 
                     HousingStatusCategory.Waiting;
 
@@ -582,7 +575,7 @@ public class FCData
                 "Eligible" :
                 this.FoundingDate == default ?
                     "Not yet founded" :
-                    $"{this.DaysUntilEligible}d left";
+                    $@"{this.@TimeUntilEligible:%d\d\ %h\h} left";
 
     public string GetHousingDemolitionText() =>
         this.HasHouse ?
