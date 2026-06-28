@@ -147,6 +147,14 @@ public static class FCTrackerTheme
         >=  10_000 => AccentOrange,
         _ => TextSecondary
     };
+    //fc.TotalMembers <= 1 ? FCTrackerTheme.TextMuted :
+    // fc.TotalMembers > 10 ? FCTrackerTheme.AccentPurple : FCTrackerTheme.TextSecondary
+    public static Vector4 GetFCMemberColor(uint members) => members switch
+    {
+        >= 4 => AccentGreen,
+        >= 1 => AccentOrange,
+        _ => TextSecondary
+    };
 
     public static Vector4 GetPlayerCombatLevelColor(short level) => level switch
     {

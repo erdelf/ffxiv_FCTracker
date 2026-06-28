@@ -155,9 +155,7 @@ public class AllFCsView : IFCView
             ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterString, fc.WorldName);
         
         ImGui.TableNextColumn();
-        Vector4 memberColor = fc.TotalMembers <= 1 ? FCTrackerTheme.TextMuted :
-                              fc.TotalMembers > 10 ? FCTrackerTheme.AccentPurple : FCTrackerTheme.TextSecondary;
-        FCTrackerWidgets.ColoredText(memberColor, fc.TotalMembers.ToString());
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetFCMemberColor(fc.TotalMembers), fc.TotalMembers.ToString());
 
         ImGui.TableNextColumn();
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, fc.FoundingDate == default ? "—" : $"{fc.TimeSinceFounded:%d}d ago");

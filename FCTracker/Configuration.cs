@@ -524,13 +524,14 @@ public class FCData
         this.House != null;
 
     [JsonIgnore]
-    public TimeSpan TimeSinceFounded => 
-        this.FoundingDate == default ? 
-            TimeSpan.Zero : 
+    public TimeSpan TimeSinceFounded =>
+        this.FoundingDate == default ?
+            TimeSpan.Zero :
             DateTime.Now - this.FoundingDate;
 
     [JsonIgnore]
-    public TimeSpan TimeUntilEligible => new TimeSpan(30, 0, 0, 0) - this.TimeSinceFounded;
+    public TimeSpan TimeUntilEligible => 
+        new TimeSpan(30, 0, 0, 0) - this.TimeSinceFounded;
 
     [JsonIgnore]
     public bool IsEligible => 
@@ -575,7 +576,9 @@ public class FCData
                 "Eligible" :
                 this.FoundingDate == default ?
                     "Not yet founded" :
-                    $@"{this.@TimeUntilEligible:%d\d\ %h\h} left";
+                    this.TimeSinceFounded.TotalDays >= 30 ?
+                        "30d passed. Check Upcoming tab" :
+                        $@"{this.@TimeUntilEligible:%d\d\ %h\h} left";
 
     public string GetHousingDemolitionText() =>
         this.HasHouse ?
