@@ -6,10 +6,10 @@ using System.Linq;
 
 public class ConfigurationFCDataService : IFCDataProvider
 {
-    private static IEnumerable<FCData> Source   => Configuration.Instance?.AllFCData ?? [];
+    private static IEnumerable<FCData> Source => Configuration.Instance?.AllFCData.Values.ToList() ?? [];
 
-    private        ICharDataProvider?  charData;
-    public         ICharDataProvider   CharData() => this.charData ??= new ConfigurationCharDataService();
+    private ICharDataProvider? charData;
+    public  ICharDataProvider  CharData() => this.charData ??= new ConfigurationCharDataService();
 
     public IReadOnlyList<FCData> GetAllFCs() => Source.ToList();
 
@@ -17,18 +17,18 @@ public class ConfigurationFCDataService : IFCDataProvider
         Source.Where(fc => fc.IsEligible).ToList();
 
     public IReadOnlyList<FCData> GetUpcomingFCs() =>
-        Source.Where(fc => !fc.IsEligible && !fc.HasHouse)
+        Source.Where(fc => fc is { IsEligible: false, HasHouse: false })
               .OrderBy(fc => fc.EligibilityDate)
               .ToList();
 
     public IReadOnlyList<FCData> GetOwnedHousingFCs() =>
         Source.Where(fc => fc.HasHouse).ToList();
 
-    public int GetTotalCount() => Source.Count();
-    public int GetReadyCount() => Source.Count(fc => fc.IsEligible);
-    public int GetUpcomingCount() => Source.Count(fc => !fc.IsEligible && !fc.HasHouse);
-    public int GetPending7DayCount() => Source.Count(fc => !fc.IsEligible && !fc.HasHouse && fc.DaysUntilEligible <= 7 && fc.DaysUntilEligible > 0);
-    public int GetPending30DayCount() => Source.Count(fc => !fc.IsEligible && !fc.HasHouse && fc.DaysUntilEligible > 7 && fc.DaysUntilEligible <= 30);
+    public int GetTotalCount()        => Source.Count();
+    public int GetReadyCount()        => Source.Count(fc => fc.IsEligible);
+    public int GetUpcomingCount()     => Source.Count(fc => fc is { IsEligible: false, HasHouse: false });
+    public int GetPending7DayCount()  => Source.Count(fc => fc is { IsEligible: false, HasHouse: false, DaysUntilEligible: <= 7 and > 0 });
+    public int GetPending30DayCount() => Source.Count(fc => fc is { IsEligible: false, HasHouse: false, DaysUntilEligible: > 7 and <= 30 });
 
     public IEnumerable<string> GetRegions() =>
         Source.Select(fc => fc.Region).Where(s => !string.IsNullOrEmpty(s)).Distinct().OrderBy(r => r);
@@ -43,15 +43,15 @@ public class ConfigurationFCDataService : IFCDataProvider
         Source.Where(fc => !string.IsNullOrEmpty(fc.Region) && !string.IsNullOrEmpty(fc.Datacenter))
               .GroupBy(fc => fc.Region)
               .ToDictionary(
-                  g => g.Key,
-                  g => g.Select(fc => fc.Datacenter).Distinct().OrderBy(d => d).ToList());
+                            g => g.Key,
+                            g => g.Select(fc => fc.Datacenter).Distinct().OrderBy(d => d).ToList());
 
     public Dictionary<string, List<string>> GetWorldsByDatacenter() =>
         Source.Where(fc => !string.IsNullOrEmpty(fc.Datacenter) && !string.IsNullOrEmpty(fc.WorldName))
               .GroupBy(fc => fc.Datacenter)
               .ToDictionary(
-                  g => g.Key,
-                  g => g.Select(fc => fc.WorldName).Distinct().OrderBy(w => w).ToList());
+                            g => g.Key,
+                            g => g.Select(fc => fc.WorldName).Distinct().OrderBy(w => w).ToList());
 
     public int GetFCCountForWorld(string world) =>
         Source.Count(fc => string.Equals(fc.WorldName, world, StringComparison.OrdinalIgnoreCase));

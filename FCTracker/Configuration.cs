@@ -58,7 +58,7 @@ public class Configuration
 
             ARData data = new();
 
-            foreach (FCData fcData in Instance.AllFCData)
+            foreach (FCData fcData in Instance.AllFCData.Values)
             {
                 ARData? fcARData = fcData.AutoRetainerData;
                 data.RepairCount += fcARData?.RepairCount ?? 0;
@@ -86,11 +86,29 @@ public class Configuration
 
     public static void ARDataBust() => arData = null;
     
-    public IEnumerable<CharData> AllCharData =>
-        this.GatheredData.CharByCID.Values.Concat(this.ImportedData.SelectMany(c => c.CharByCID.Values));
+    public Dictionary<ulong, CharData> AllCharData
+    {
+        get
+        {
+            Dictionary<ulong, CharData> allCharData = new(this.GatheredData.CharByCID);
+            foreach (GatheredData data in this.ImportedData)
+                allCharData.AddRange(data.CharByCID);
 
-    public IEnumerable<FCData> AllFCData => 
-        this.GatheredData.FCData.Values.Concat(this.ImportedData.SelectMany(c => c.FCData.Values));
+            return allCharData;
+        }
+    }
+
+    public Dictionary<ulong, FCData> AllFCData
+    {
+        get
+        {
+            Dictionary<ulong, FCData> allFCData = new(this.GatheredData.FCData);
+            foreach (GatheredData data in this.ImportedData)
+                allFCData.AddRange(data.FCData);
+
+            return allFCData;
+        }
+    }
 
     public ulong? GetFCIdForCID(ulong cid) => 
         this.GatheredData.CharByCID.TryGetValue(cid, out CharData charData) ? charData.FC : null;
