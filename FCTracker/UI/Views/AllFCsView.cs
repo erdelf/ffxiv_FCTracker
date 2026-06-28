@@ -197,6 +197,10 @@ public class AllFCsView : IFCView
 
         if (selectable && ImGui.IsItemClicked(ImGuiMouseButton.Left))
             ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.GatheredData.CharByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
+
+        if(fc.MemberCIDs.Count > 0 && ImGui.IsItemHovered())
+            FCTrackerWidgets.Tooltip("FC Members:\n\t" + string.Join("\n\t", fc.MemberCIDs.Select(cid => Configuration.Instance.AllCharData.TryGetValue(cid, out CharData charData) ? charData.Name : null).
+                                                          Where(name => !string.IsNullOrEmpty(name))));
     }
 
     private static void DrawStatusCell(FCData fc)
