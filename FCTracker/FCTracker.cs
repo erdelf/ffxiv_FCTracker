@@ -231,6 +231,8 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                                          this.TaskManager.Abort();
                                      }
                                  }, "Character Test");
+        this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Hide());
+        this.TaskManager.Enqueue(() => AgentFreeCompanyProfile.Instance()->Hide());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Show());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->IsAddonShown());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->IsAddonReady());
@@ -282,6 +284,10 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                                      return false;
                                  }, "FC Member Context exec");
         this.TaskManager.Enqueue(() => GenericHelpers.TryGetAddonByName("ContextMenu", out AtkUnitBase* fcAddon) && fcAddon->IsReady(), "FCMember Context check");
+
+        int foundationDate = -1;
+        this.TaskManager.Enqueue(() => foundationDate = AgentFreeCompanyProfile.Instance()->FoundationDate, "FC Foundation Date Cache Grab");
+
         this.TaskManager.Enqueue(() =>
                                  {
                                      if (GenericHelpers.TryGetAddonByName("ContextMenu", out AtkUnitBase* fcAddon) && fcAddon->IsReady())
@@ -294,6 +300,8 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
         this.TaskManager.Enqueue(() => GenericHelpers.TryGetAddonByName("FreeCompanyProfile", out AtkUnitBase* fcAddon) && fcAddon->IsReady(), "FCMember Profile check");
         this.TaskManager.Enqueue(() => AgentFreeCompanyProfile.Instance()->IsAddonShown());
         this.TaskManager.Enqueue(() => AgentFreeCompanyProfile.Instance()->IsAddonReady());
+        this.TaskManager.Enqueue(() => foundationDate != AgentFreeCompanyProfile.Instance()->FoundationDate, "FC Foundation Date Check", new TaskManagerConfiguration(500));
+
         this.TaskManager.Enqueue(() => Configuration.Instance.UpdateCurrentFCData());
         this.TaskManager.Enqueue(() => AgentFreeCompany.Instance()->Hide());
         this.TaskManager.Enqueue(() => AgentFreeCompanyProfile.Instance()->Hide());
