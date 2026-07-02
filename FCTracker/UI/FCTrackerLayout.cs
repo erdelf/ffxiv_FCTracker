@@ -5,6 +5,7 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
+using ECommons.ImGuiMethods;
 using FCTracker.Services;
 
 public class FCTrackerLayout(IFCDataProvider dataProvider)
@@ -16,13 +17,15 @@ public class FCTrackerLayout(IFCDataProvider dataProvider)
         this.Sidebar.Draw();
         ImGui.SameLine(0, 0);
 
-        using var contentArea = ImRaii.Child("##FCTrackerContent", Vector2.Zero, false);
-        if (!contentArea.Success) return;
+        using ImRaii.ChildDisposable contentArea = ImRaii.Child("##FCTrackerContent", Vector2.Zero, false);
+        if (!contentArea.Success)
+            return;
 
         DrawContentHeader(title, subtitle, renderHeaderActions);
 
-        using var contentBody = ImRaii.Child("##ContentBody", Vector2.Zero, false);
-        if (!contentBody.Success) return;
+        using ImRaii.ChildDisposable contentBody = ImRaii.Child("##ContentBody", Vector2.Zero, false);
+        if (!contentBody.Success)
+            return;
 
         renderContent();
     }
@@ -31,10 +34,11 @@ public class FCTrackerLayout(IFCDataProvider dataProvider)
     {
         using (ImRaii.PushColor(ImGuiCol.ChildBg, FCTrackerTheme.BackgroundHeader))
         {
-            using var headerChild = ImRaii.Child("##ContentHeader", new Vector2(0, 42), true, ImGuiWindowFlags.NoScrollbar);
-            if (!headerChild.Success) return;
+            using ImRaii.ChildDisposable headerChild = ImRaii.Child("##ContentHeader", new Vector2(0, 42f), true, ImGuiWindowFlags.NoScrollbar);
+            if (!headerChild.Success) 
+                return;
 
-            ImGui.SetCursorPos(new Vector2(14, 11));
+            ImGui.SetCursorPos(new Vector2(14f.Scale(), 11));
 
             FCTrackerWidgets.Icon(FCTrackerTheme.AccentBlue, FontAwesomeIcon.Building);
 
@@ -46,7 +50,7 @@ public class FCTrackerLayout(IFCDataProvider dataProvider)
 
             if (renderActions != null)
             {
-                ImGui.SameLine(ImGui.GetContentRegionMax().X - 360);
+                ImGui.SameLine(ImGui.GetContentRegionMax().X - 350f.Scale());
                 renderActions();
             }
         }

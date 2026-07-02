@@ -12,6 +12,7 @@ using NightmareUI.Censoring;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ECommons.ImGuiMethods;
 
 public class FCTrackerWindow : Window, IDisposable
 {
@@ -81,7 +82,7 @@ public class FCTrackerWindow : Window, IDisposable
         FCTrackerWidgets.Checkbox("Scramble Names", ref Censor.Config.Enabled);
         ImGui.SameLine();
 
-        ImGui.SetNextItemWidth(150);
+        ImGui.SetNextItemWidth(150f.Scale());
         using (ImRaii.PushColor(ImGuiCol.FrameBg, FCTrackerTheme.BackgroundCard))
             ImGui.InputTextWithHint("##Search", "Search...", ref this.searchText, 256);
 
@@ -92,7 +93,7 @@ public class FCTrackerWindow : Window, IDisposable
             using (ImRaii.PushColor(ImGuiCol.Button, FCTrackerTheme.AccentBlueDim))
             using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.AccentBlue))
             using (ImRaii.PushFont(UiBuilder.IconFont))
-                if (ImGui.Button(FontAwesomeIcon.SyncAlt.ToIconString(), new Vector2(28, 0)))
+                if (ImGui.Button(FontAwesomeIcon.SyncAlt.ToIconString(), new Vector2(28f.Scale(), 0)))
                 {
                     FCTrackerPlugin.Plugin.TaskManager.Abort();
                     FCTrackerPlugin.Plugin.GetFCInfo();
@@ -103,11 +104,11 @@ public class FCTrackerWindow : Window, IDisposable
 
         ImGui.SameLine();
 
-        using (ImRaii.PushColor(ImGuiCol.Button, FCTrackerTheme.AccentRed with { W = 0.15f }))
+        using (ImRaii.PushColor(ImGuiCol.Button, FCTrackerTheme.AccentRed with { W = 0.15f.Scale() }))
         using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.AccentRed))
         using (ImRaii.PushFont(UiBuilder.IconFont))
         {
-            if (ImGui.Button(FontAwesomeIcon.TrashAlt.ToIconString(), new Vector2(28, 0)))
+            if (ImGui.Button(FontAwesomeIcon.TrashAlt.ToIconString(), new Vector2(28f.Scale(), 0)))
             {
                 if(ImGui.GetIO().KeyCtrl)
                     Configuration.Instance.ClearData();
