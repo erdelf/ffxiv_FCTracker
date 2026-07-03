@@ -142,13 +142,12 @@ public static class FCTrackerTheme
     
     public static Vector4 GetFCPointColor(int points) => points switch
     {
-        >= 160_000 => AccentGreen,
-        >=  99_900 => AccentYellow,
-        >=  10_000 => AccentOrange,
-        _ => TextSecondary
+        >= 160_000 + 99_900 => AccentGreen,
+        >= 160_000 => AccentYellow,
+        >=  99_900 => AccentOrange,
+        _ => AccentRed
     };
-    //fc.TotalMembers <= 1 ? FCTrackerTheme.TextMuted :
-    // fc.TotalMembers > 10 ? FCTrackerTheme.AccentPurple : FCTrackerTheme.TextSecondary
+
     public static Vector4 GetFCMemberColor(uint members) => members switch
     {
         >= 4 => AccentGreen,

@@ -12,6 +12,11 @@ public class ReadyNowView : IFCView
 {
     public string Id => "ready";
 
+    private static readonly Dictionary<string, string> HeaderTooltips = new()
+    {
+        ["FC Points"] = "FC points are required for fuel and the submarine licenses\n99.900 are required for one stack of fuel\n160.000 are required for 16 Dive credits for all 4 submarines.",
+    };
+
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx) =>
         ("Ready for Housing", $"{ctx.Data.GetReadyCount()} FCs eligible");
 
@@ -36,13 +41,26 @@ public class ReadyNowView : IFCView
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 8);
 
-        const ImGuiTableFlags flags = ImGuiTableFlags.PadOuterX | ImGuiTableFlags.SizingFixedFit;
-        using var table = ImRaii.Table("##ReadyTable", 3, flags);
-        if (!table.Success) return;
+        const ImGuiTableFlags flags = ImGuiTableFlags.ScrollY        |
+                                      ImGuiTableFlags.PadOuterX      |
+                                      ImGuiTableFlags.SizingFixedFit |
+                                      ImGuiTableFlags.Resizable;
+
+        using ImRaii.TableDisposable table = ImRaii.Table("##ReadyTable", 4, flags);
+        if (!table.Success) 
+            return;
+
+        ImGui.TableSetupScrollFreeze(4, 1);
 
         ImGui.TableSetupColumn("Status", ImGuiTableColumnFlags.WidthFixed, 75);
         ImGui.TableSetupColumn("FC", ImGuiTableColumnFlags.WidthFixed, 540);
-        ImGui.TableSetupColumn("##Spacer", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("FC Points", ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("##Spacer",  ImGuiTableColumnFlags.WidthStretch);
+
+
+        using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
+        using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.TextSecondary))
+            FCTrackerWidgets.TableHeadersRowWithTooltips(HeaderTooltips);
 
         foreach (FCData fc in readyFCs)
             DrawRow(fc);
@@ -95,5 +113,8 @@ public class ReadyNowView : IFCView
             ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.GatheredData.CharByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
 
 		ImGui.TableNextColumn();
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetFCPointColor(fc.FCPoints), fc.FCPoints.ToString("N0"));
+
+        ImGui.TableNextColumn();
     }
 }
