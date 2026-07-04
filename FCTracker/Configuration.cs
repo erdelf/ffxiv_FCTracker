@@ -179,14 +179,43 @@ public class Configuration
         fcData.FoundingDate = DateTimeOffset.FromUnixTimeSeconds(date).DateTime;
 
 
-        StringArrayData* arrayData = RaptureAtkModule.Instance()->GetStringArrayData(48);
-        if (arrayData->Size > 1)
+        StringArrayData* arrayDataString = RaptureAtkModule.Instance()->GetStringArrayData(48);
+        if (arrayDataString->Size > 1)
         {
-            CStringPointer x        = arrayData->StringArray[2];
+            CStringPointer x        = arrayDataString->StringArray[2];
             SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
 
             fcData.Tag = seString.GetText();
         }
+
+        NumberArrayData* arrayDataNumber = RaptureAtkModule.Instance()->GetNumberArrayData(62);
+        if (arrayDataNumber->Size > 1)
+        {
+            int activeActions = arrayDataNumber->IntArray[1];
+            fcData.ActionsActive = new FCData.FCActionData[activeActions];
+            for (int i = 0; i < activeActions; i++)
+            {
+                fcData.ActionsActive[i] = new FCData.FCActionData
+                                          {
+                                              ActionId         = (uint)arrayDataNumber->IntArray[2 + i * 3],
+                                              Unk              = arrayDataNumber->IntArray[3 + i * 3],
+                                              ExpirationTime   = DateTime.Now.Add(TimeSpan.FromSeconds(arrayDataNumber->IntArray[4 + i * 3]))
+                                          };
+            }
+
+            int availableActions = arrayDataNumber->IntArray[11];
+            fcData.ActionsAvailable = new FCData.FCActionData[availableActions];
+            for (int i = 0; i < availableActions; i++)
+            {
+                fcData.ActionsAvailable[i] = new FCData.FCActionData
+                                             {
+                                                 ActionId         = (uint)arrayDataNumber->IntArray[12 + i * 3],
+                                                 Unk              = arrayDataNumber->IntArray[13 + i * 3],
+                                                 ExpirationTime   = DateTime.Now.Add(TimeSpan.FromSeconds(arrayDataNumber->IntArray[14 + i * 3]))
+                                             };
+            }
+        }
+
 
         fcData.FCPoints = *(int*)((nint)AgentModule.Instance()->GetAgentByInternalId(AgentId.FreeCompanyCreditShop) + 256);
 
@@ -547,6 +576,20 @@ public class FCData
     [JsonIgnore]
     public bool MasterAvailable =>
         this.masterAvailable ??= this.SourceData.ImportSourceConfig == null && Configuration.Instance.GatheredData.CharByCID.Any(ch => this.MemberCIDs.Contains(ch.Value.CID) && ch.Value.Name == this.MasterString);
+
+    [JsonObject(MemberSerialization.OptOut)]
+    public class FCActionData
+    {
+        public  uint          ActionId { get; set; }
+
+        [JsonIgnore]
+        public CompanyAction? Action => field ??= Svc.Data.GetExcelSheet<CompanyAction>().GetRow(this.ActionId);
+
+        public int      Unk              { get; set; }
+        public DateTime ExpirationTime   { get; set; }
+    }
+    public FCActionData[] ActionsActive { get; set; } = [];
+    public FCActionData[] ActionsAvailable { get; set; } = [];
 
     public void AddMember(ulong cid)
     {

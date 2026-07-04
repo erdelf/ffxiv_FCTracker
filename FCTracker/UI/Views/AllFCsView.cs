@@ -1,5 +1,6 @@
 namespace FCTracker.UI.Views;
 
+using System;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using ECommons;
@@ -67,7 +68,7 @@ public class AllFCsView : IFCView
                                       ImGuiTableFlags.SizingFixedFit |
                                       ImGuiTableFlags.Resizable;
 
-        using var table = ImRaii.Table("##FCTable", 8, flags);
+        using var table = ImRaii.Table("##FCTable", 9, flags);
         if (!table.Success)
             return;
 
@@ -77,6 +78,7 @@ public class AllFCsView : IFCView
         ImGui.TableSetupColumn("Members",      ImGuiTableColumnFlags.WidthFixed, 60);
         ImGui.TableSetupColumn("Founded",      ImGuiTableColumnFlags.WidthFixed, 80);
         ImGui.TableSetupColumn("FC Points",    ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("Actions",      ImGuiTableColumnFlags.WidthFixed, 80);
         ImGui.TableSetupColumn("Status",       ImGuiTableColumnFlags.WidthFixed, 140);
         ImGui.TableSetupColumn("Demolition",   ImGuiTableColumnFlags.WidthFixed, 60);
         ImGui.TableSetupColumn("##Spacer",     ImGuiTableColumnFlags.WidthStretch);
@@ -166,6 +168,9 @@ public class AllFCsView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetFCPointColor(fc.FCPoints), fc.FCPoints.ToString("N0"));
 
         ImGui.TableNextColumn();
+        DrawActionCell(fc);
+
+        ImGui.TableNextColumn();
         DrawStatusCell(fc);
 
         ImGui.TableNextColumn();
@@ -198,7 +203,25 @@ public class AllFCsView : IFCView
 
         if(fc.MemberCIDs.Count > 0 && ImGui.IsItemHovered())
             FCTrackerWidgets.Tooltip("FC Members:\n\t" + string.Join("\n\t", fc.MemberCIDs.Select(cid => Configuration.Instance.AllCharData.TryGetValue(cid, out CharData charData) ? charData.Name : null).
-                                                          Where(name => !string.IsNullOrEmpty(name))));
+                                                                                Where(name => !string.IsNullOrEmpty(name))));
+    }
+
+    private static void DrawActionCell(FCData fc)
+    {
+        if (fc.ActionsActive.Length > 0)
+        {
+            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetActionColor(fc.ActionsActive.Length), $"{fc.ActionsActive.Length} active");
+            ImGui.SameLine(0, 6);
+        }
+
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextSecondary, $"{fc.ActionsAvailable.Length} available");
+
+        if((fc.ActionsActive.Length > 0 || fc.ActionsAvailable.Length > 0) && ImGui.IsItemHovered())
+            FCTrackerWidgets.Tooltip(
+                                     (fc.ActionsActive.Length > 0 ?
+                                         $"Active Actions:\n\t{string.Join("\n\t", fc.ActionsActive.Select(ad => $@"{ad.Action?.Name}: {ad.ExpirationTime - DateTime.Now:%h\h\ %m\m}"))}\n" : string.Empty) +
+                                     (fc.ActionsAvailable.Length > 0 ?
+                                         $"Available Actions:\n\t{string.Join("\n\t", fc.ActionsAvailable.Select(ad => ad.Action?.Name))}" : string.Empty));
     }
 
     private static void DrawStatusCell(FCData fc)

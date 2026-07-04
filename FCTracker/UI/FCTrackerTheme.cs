@@ -108,6 +108,13 @@ public static class FCTrackerTheme
     public static uint RowHighlightColor =>
         ImGui.GetColorU32(FCTrackerTheme.AccentBlueDim);
 
+    public static Vector4 GetActionColor(int count) => count switch
+    {
+        >= 2 => AccentGreen,
+        >= 1 => TextPrimary,
+        _ => TextSecondary
+    };
+
     public static Vector4 GetStatusColor(HousingStatusCategory category, bool demolition) => category switch
     {
         HousingStatusCategory.Ready => AccentGreen,
