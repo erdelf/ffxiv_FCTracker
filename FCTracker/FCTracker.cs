@@ -53,6 +53,16 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
 
     public int Version { get; init; }
 
+    
+    public readonly DateTime EntryDateTimeReference    = new(2026, 6, 1, 15, 0, 0);
+    public const    int      ENTRY_PERIOD_DURATION_DAYS   = 5;
+    public const    int      RESULTS_PERIOD_DURATION_DAYS = 4;
+    public const    int      CYCLE_DURATION_DAYS         = ENTRY_PERIOD_DURATION_DAYS + RESULTS_PERIOD_DURATION_DAYS;
+
+    public          DateTime EntryPeriodCurrentStartDate => DateTime.UtcNow.AddDays(-((DateTime.UtcNow - this.EntryDateTimeReference).TotalDays % CYCLE_DURATION_DAYS));
+    public          bool     IsEntryPeriod               => DateTime.UtcNow < this.EntryPeriodCurrentStartDate.AddDays(ENTRY_PERIOD_DURATION_DAYS);
+    public          DateTime EntryPeriodNextStartDate    => this.EntryPeriodCurrentStartDate.AddDays(CYCLE_DURATION_DAYS);
+
     public const string ScrambleTag = "« »";
 
     public FCTrackerPlugin()

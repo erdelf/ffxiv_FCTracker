@@ -1,5 +1,6 @@
 namespace FCTracker.UI.Views;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -70,12 +71,31 @@ public class ReadyNowView : IFCView
     {
         using (ImRaii.PushColor(ImGuiCol.ChildBg, FCTrackerTheme.AccentGreenDim))
         {
-            using var banner = ImRaii.Child("##ReadyHeader", new Vector2(ImGui.GetContentRegionAvail().X - 28, 40), true);
-            if (!banner.Success) return;
+            using ImRaii.ChildDisposable banner = ImRaii.Child("##ReadyHeader", new Vector2(ImGui.GetContentRegionAvail().X - 28, 40), true);
+            if (!banner.Success)
+                return;
 
             ImGui.SetCursorPos(new Vector2(14, 10));
             FCTrackerWidgets.IconLabel(FCTrackerTheme.AccentGreen, FontAwesomeIcon.CheckCircle,
                 $"{count} Free {(count == 1 ? "Company" : "Companies")} Ready for Housing");
+
+            ImGui.SameLine(0, 20f);
+
+            if (FCTrackerPlugin.Plugin.IsEntryPeriod)
+            {
+                FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentGreen, 
+                                             $"Entry period active till {FCTrackerPlugin.Plugin.EntryPeriodCurrentStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS):d}");
+            }
+            else
+            {
+                TimeSpan timeUntilNextEntry = FCTrackerPlugin.Plugin.EntryPeriodNextStartDate - DateTime.Now;
+                if(timeUntilNextEntry.Days <= 0)
+                    FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentGreen,
+                                                 @$"Next Entry period starting in {@timeUntilNextEntry:h\h} to {FCTrackerPlugin.Plugin.EntryPeriodNextStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS):d}");
+                else
+                    FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, 
+                                             $"Next Entry period active from {FCTrackerPlugin.Plugin.EntryPeriodNextStartDate:d} to {FCTrackerPlugin.Plugin.EntryPeriodNextStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS):d}");
+            }
         }
     }
 
