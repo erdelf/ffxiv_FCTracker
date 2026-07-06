@@ -63,7 +63,7 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
     public          bool     IsEntryPeriod               => DateTime.UtcNow < this.EntryPeriodCurrentStartDate.AddDays(ENTRY_PERIOD_DURATION_DAYS);
     public          DateTime EntryPeriodNextStartDate    => this.EntryPeriodCurrentStartDate.AddDays(CYCLE_DURATION_DAYS);
 
-    public const string ScrambleTag = "« »";
+    public const string ScrambleTag = "«FC»";
 
     public FCTrackerPlugin()
     {
