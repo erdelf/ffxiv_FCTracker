@@ -8,6 +8,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.IPC;
+using NightmareUI.Censoring;
 
 public class ReadyNowView : IFCView
 {
@@ -124,11 +125,11 @@ public class ReadyNowView : IFCView
             ImGui.SameLine(0, 0);
         }
 
-		FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, fc.Tag);
+		FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, Censor.Hide(fc.Tag, FCTrackerPlugin.ScrambleTag));
         ImGui.SameLine(0, 6);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, fc.FCName);
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, Censor.Character(fc.FCName));
         ImGui.SameLine(0, 10);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, $"· {fc.WorldName} · {fc.MasterString}");
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, $"· {Censor.World(fc.WorldName)} · {Censor.Character(fc.MasterString)}");
         if (selectable)
             ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.GatheredData.CharByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
 
