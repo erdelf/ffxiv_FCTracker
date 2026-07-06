@@ -162,6 +162,24 @@ public static class FCTrackerTheme
         _ => TextSecondary
     };
 
+    public static Vector4 GetPlayerFuelColor(int fuelCount) => fuelCount switch
+    {
+        >= 300 => AccentGreen,
+        >= 200 => AccentYellow,
+        >= 100 => AccentOrange,
+        > 0 => AccentRed,
+        _ => TextSecondary
+    };
+
+    public static Vector4 GetPlayerRepairColor(int repairCount) => repairCount switch
+    {
+        >= 300 => AccentGreen,
+        >= 200 => AccentYellow,
+        >= 100 => AccentOrange,
+        > 0 => AccentRed,
+        _ => TextSecondary
+    };
+
     public static Vector4 GetPlayerCombatLevelColor(short level) => level switch
     {
         >= 30 => AccentGreen,

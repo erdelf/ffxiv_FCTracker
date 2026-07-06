@@ -1,6 +1,10 @@
 namespace FCTracker.UI.Views;
 
 using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using ECommons;
@@ -9,10 +13,6 @@ using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using ECommons.IPC;
 using NightmareUI.Censoring;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Numerics;
 
 public class AllFCsView : IFCView
 {
@@ -68,7 +68,7 @@ public class AllFCsView : IFCView
                                       ImGuiTableFlags.SizingFixedFit |
                                       ImGuiTableFlags.Resizable;
 
-        using var table = ImRaii.Table("##FCTable", 9, flags);
+        using var table = ImRaii.Table("##FCTable", 11, flags);
         if (!table.Success)
             return;
 
@@ -79,6 +79,8 @@ public class AllFCsView : IFCView
         ImGui.TableSetupColumn("Founded",      ImGuiTableColumnFlags.WidthFixed, 80);
         ImGui.TableSetupColumn("FC Points",    ImGuiTableColumnFlags.WidthFixed, 80);
         ImGui.TableSetupColumn("Actions",      ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("Fuel",         ImGuiTableColumnFlags.WidthFixed, 20);
+        ImGui.TableSetupColumn("Repair",       ImGuiTableColumnFlags.WidthFixed, 20);
         ImGui.TableSetupColumn("Status",       ImGuiTableColumnFlags.WidthFixed, 140);
         ImGui.TableSetupColumn("Demolition",   ImGuiTableColumnFlags.WidthFixed, 60);
         ImGui.TableSetupColumn("##Spacer",     ImGuiTableColumnFlags.WidthStretch);
@@ -171,12 +173,32 @@ public class AllFCsView : IFCView
         DrawActionCell(fc);
 
         ImGui.TableNextColumn();
+        DrawFuelAndRepairCells(fc);
+
+        ImGui.TableNextColumn();
         DrawStatusCell(fc);
 
         ImGui.TableNextColumn();
 
         DrawDemolitionCell(fc);
         ImGui.TableNextColumn();
+    }
+
+    private static void DrawFuelAndRepairCells(FCData fc)
+    {
+        if (fc.AutoRetainerData.HasValue)
+        {
+            ARData data = fc.AutoRetainerData.Value;
+
+            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerFuelColor(data.FuelCount), data.FuelCount.ToString());
+
+            ImGui.TableNextColumn();
+
+            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerRepairColor(data.RepairCount), data.RepairCount.ToString());
+        } else
+        {
+            ImGui.TableNextColumn();
+        }
     }
 
     private static void DrawFCNameCell(FCData fc)
