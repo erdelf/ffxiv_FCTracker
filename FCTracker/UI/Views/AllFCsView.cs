@@ -161,6 +161,9 @@ public class AllFCsView : IFCView
         ImGui.TableNextColumn();
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetFCMemberColor(fc.TotalMembers), fc.TotalMembers.ToString());
 
+        if ((fc.MemberCIDs.Count > 0 || fc.MemberNames.Count > 0) && ImGui.IsItemHovered())
+            FCTrackerWidgets.Tooltip(fc.MembersString(true));
+
         ImGui.TableNextColumn();
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, fc.FoundingDate == default ? "—" : $"{fc.TimeSinceFounded:%d}d ago");
         if(fc.FoundingDate != default && ImGui.IsItemHovered())
@@ -224,8 +227,7 @@ public class AllFCsView : IFCView
             ECommonsIPC.Lifestream.ChangeCharacter(fc.MasterAvailable ? fc.MasterString : Configuration.Instance.GatheredData.CharByCID[fc.MemberCIDs.First()].Name, fc.WorldName);
 
         if(fc.MemberCIDs.Count > 0 && ImGui.IsItemHovered())
-            FCTrackerWidgets.Tooltip("FC Members:\n\t" + string.Join("\n\t", fc.MemberCIDs.Select(cid => Configuration.Instance.AllCharData.TryGetValue(cid, out CharData charData) ? charData.Name : null).
-                                                                                Where(name => !string.IsNullOrEmpty(name))));
+            FCTrackerWidgets.Tooltip(fc.MembersString(false));
     }
 
     private static void DrawActionCell(FCData fc)

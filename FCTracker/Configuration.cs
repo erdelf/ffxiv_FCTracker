@@ -22,7 +22,6 @@ using NightmareUI.Censoring;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using UI;
 using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
@@ -175,6 +174,11 @@ public class Configuration
 
         fcData.MemberCIDs.Add(Player.CID);
 
+        fcData.FCName       = fcProxy->NameString;
+        fcData.TotalMembers = fcProxy->TotalMembers;
+        fcData.MasterString = fcProxy->MasterString;
+        fcData.Rank         = fcProxy->Rank;
+
         int date = AgentFreeCompanyProfile.Instance()->FoundationDate;
         fcData.FoundingDate = DateTimeOffset.FromUnixTimeSeconds(date).DateTime;
 
@@ -186,6 +190,19 @@ public class Configuration
             SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
 
             fcData.Tag = seString.GetText();
+        }
+
+        arrayDataString = RaptureAtkModule.Instance()->GetStringArrayData(37);
+        if(arrayDataString->Size > 1)
+        {
+            fcData.MemberNames = [];
+            for(int i = 0; i < fcData.TotalMembers; i++)
+            {
+                CStringPointer x        = arrayDataString->StringArray[i*5];
+                SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
+
+                fcData.MemberNames.Add(seString.GetText());
+            }
         }
 
         NumberArrayData* arrayDataNumber = RaptureAtkModule.Instance()->GetNumberArrayData(62);
@@ -238,11 +255,6 @@ public class Configuration
                 fcData.House = houseInfo;
             }
         }
-
-        fcData.FCName       = fcProxy->NameString;
-        fcData.TotalMembers = fcProxy->TotalMembers;
-        fcData.MasterString = fcProxy->MasterString;
-        fcData.Rank         = fcProxy->Rank;
 
         this.GatheredData.FCData[fcProxy->Id] = fcData;
 
@@ -448,6 +460,7 @@ public class FCData
     public DateTime       FoundingDate { get; set; }
     public int            FCPoints     { get; set; }
     public HashSet<ulong> MemberCIDs   { get; set; } = [];
+    public HashSet<string> MemberNames { get; set; } = [];
 
     [JsonProperty]
     private ARData? autoRetainerData;
@@ -572,10 +585,30 @@ public class FCData
 
     [JsonIgnore]
     private bool? masterAvailable;
+    [JsonIgnore]
+    private ulong masterCID;
 
     [JsonIgnore]
-    public bool MasterAvailable =>
-        this.masterAvailable ??= this.SourceData.ImportSourceConfig == null && Configuration.Instance.GatheredData.CharByCID.Any(ch => this.MemberCIDs.Contains(ch.Value.CID) && ch.Value.Name == this.MasterString);
+    public bool MasterAvailable
+    {
+        get
+        {
+            if (this.masterAvailable.HasValue)
+                return this.masterAvailable.Value;
+
+            
+            if (this.SourceData.ImportSourceConfig == null)
+                foreach (KeyValuePair<ulong, CharData> ch in Configuration.Instance.GatheredData.CharByCID)
+                    if (this.MemberCIDs.Contains(ch.Value.CID) && ch.Value.Name == this.MasterString)
+                    {
+                        this.masterCID       = ch.Value.CID;
+                        this.masterAvailable = true;
+                        break;
+                    }
+
+            return this.masterAvailable ??= false;
+        }
+    }
 
     [JsonObject(MemberSerialization.OptOut)]
     public class FCActionData
@@ -631,4 +664,42 @@ public class FCData
     [JsonIgnore]
     public bool LoggedIn =>
         FCTrackerPlugin.LoggedInCID.HasValue && this.MemberCIDs.Contains(FCTrackerPlugin.LoggedInCID.Value);
+
+    public string MembersString(bool external)
+    {
+            StringBuilder sb = new();
+            sb.Append("FC Members:\n\t");
+
+            if (this.MasterAvailable)
+            {
+                sb.Append(MasterString);
+                sb.Append(" (Master)\n\t");
+            }
+
+            HashSet<string> memberNames = [this.MasterString];
+
+            foreach (ulong memberCID in this.MemberCIDs)
+                if(memberCID != this.masterCID && Configuration.Instance.AllCharData.TryGetValue(memberCID, out CharData charData) && 
+                   !string.IsNullOrEmpty(charData.Name))
+                {
+                    memberNames.Add(charData.Name);
+                    sb.Append(charData.Name);
+                    sb.Append("\n\t");
+                }
+
+            if (external && this.MemberNames.Count > this.MemberCIDs.Count)
+            {
+                sb.Append("\nOther FC Members:\n\t");
+
+                foreach (string name in this.MemberNames)
+                {
+                    if (memberNames.Contains(name) || string.IsNullOrEmpty(name))
+                        continue;
+                    sb.Append(name);
+                    sb.Append("\n\t");
+                }
+            }
+
+            return sb.ToString().Trim();
+    }
 }
