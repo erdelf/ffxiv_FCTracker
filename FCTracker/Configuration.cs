@@ -1,5 +1,10 @@
 namespace FCTracker;
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using AutoRetainerAPI.Configuration;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
@@ -19,10 +24,6 @@ using InteropGenerator.Runtime;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using NightmareUI.Censoring;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using UI;
 using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
 
@@ -182,7 +183,6 @@ public class Configuration
         int date = AgentFreeCompanyProfile.Instance()->FoundationDate;
         fcData.FoundingDate = DateTimeOffset.FromUnixTimeSeconds(date).DateTime;
 
-
         StringArrayData* arrayDataString = RaptureAtkModule.Instance()->GetStringArrayData(48);
         if (arrayDataString->Size > 1)
         {
@@ -193,19 +193,42 @@ public class Configuration
         }
 
         arrayDataString = RaptureAtkModule.Instance()->GetStringArrayData(37);
-        if(arrayDataString->Size > 1)
+        NumberArrayData* arrayDataNumber = RaptureAtkModule.Instance()->GetNumberArrayData(40);
+        if (arrayDataString->Size > 1)
         {
-            fcData.MemberNames = [];
+            fcData.MemberData = [];
             for(int i = 0; i < fcData.TotalMembers; i++)
             {
                 CStringPointer x        = arrayDataString->StringArray[i*5];
                 SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
 
-                fcData.MemberNames.Add(seString.GetText());
+                fcData.MemberData.Add(new FCMemberData
+                                      {
+                                          Name   = seString.GetText(),
+                                          FCRank = (byte) arrayDataNumber->IntArray[2406+i]
+                                      });
             }
         }
 
-        NumberArrayData* arrayDataNumber = RaptureAtkModule.Instance()->GetNumberArrayData(62);
+        arrayDataString = RaptureAtkModule.Instance()->GetStringArrayData(43);
+        if(arrayDataString->Size > 1)
+        {
+            for(int i = 0; i < 15; i++)
+            {
+                CStringPointer x        = arrayDataString->StringArray[i];
+                SeString       seString = MemoryHelper.ReadSeStringNullTerminated(new IntPtr(x));
+
+                string text = seString.GetText();
+                if(!string.IsNullOrEmpty(text))
+                    fcData.RankData[i] = new FCRankData
+                                         {
+                                             ID   = (byte)i,
+                                             Name = text
+                                         };
+            }
+        }
+
+        arrayDataNumber = RaptureAtkModule.Instance()->GetNumberArrayData(62);
         if (arrayDataNumber->Size > 1)
         {
             int activeActions = arrayDataNumber->IntArray[1];
@@ -418,6 +441,20 @@ public struct CharData
 }
 
 [JsonObject(MemberSerialization.OptOut)]
+public struct FCMemberData
+{
+    public required string Name   { get; set; }
+    public required byte   FCRank { get; set; }
+}
+
+[JsonObject(MemberSerialization.OptOut)]
+public struct FCRankData
+{
+    public required byte ID { get; set; }
+    public required string Name { get; set; }
+}
+
+[JsonObject(MemberSerialization.OptOut)]
 public struct ARData
 {
     public int RepairCount { get; set; }
@@ -460,7 +497,7 @@ public class FCData
     public DateTime       FoundingDate { get; set; }
     public int            FCPoints     { get; set; }
     public HashSet<ulong> MemberCIDs   { get; set; } = [];
-    public HashSet<string> MemberNames { get; set; } = [];
+    public HashSet<FCMemberData> MemberData { get; set; } = [];
 
     [JsonProperty]
     private ARData? autoRetainerData;
@@ -665,6 +702,8 @@ public class FCData
     public bool LoggedIn =>
         FCTrackerPlugin.LoggedInCID.HasValue && this.MemberCIDs.Contains(FCTrackerPlugin.LoggedInCID.Value);
 
+    public FCRankData?[] RankData { get; set; } = new FCRankData?[15];
+
     public string MembersString(bool external)
     {
             StringBuilder sb = new();
@@ -672,8 +711,8 @@ public class FCData
 
             if (this.MasterAvailable)
             {
-                sb.Append(MasterString);
-                sb.Append(" (Master)\n\t");
+                sb.Append(this.MasterString);
+                sb.Append($" ({this.RankData.SkipWhile(r => r == null).FirstOrDefault()?.Name})\n\t");
             }
 
             HashSet<string> memberNames = [this.MasterString];
@@ -684,18 +723,25 @@ public class FCData
                 {
                     memberNames.Add(charData.Name);
                     sb.Append(charData.Name);
+
+                    if (this.MemberData.FirstOrDefault(fcmd => fcmd.Name == charData.Name) is FCMemberData memberData)
+                        sb.Append($" ({(this.RankData[memberData.FCRank] != null ? this.RankData[memberData.FCRank]!.Value.Name : memberData.FCRank)})");
+
                     sb.Append("\n\t");
                 }
 
-            if (external && this.MemberNames.Count > this.MemberCIDs.Count)
+            if (external && this.MemberData.Count > this.MemberCIDs.Count)
             {
                 sb.Append("\nOther FC Members:\n\t");
 
-                foreach (string name in this.MemberNames)
+                foreach (FCMemberData member in this.MemberData)
                 {
-                    if (memberNames.Contains(name) || string.IsNullOrEmpty(name))
+                    if (memberNames.Contains(member.Name) || string.IsNullOrEmpty(member.Name))
                         continue;
-                    sb.Append(name);
+                    sb.Append(member.Name);
+
+                    sb.Append($" ({(this.RankData[member.FCRank] != null ? this.RankData[member.FCRank]!.Value.Name : member.FCRank)})");
+
                     sb.Append("\n\t");
                 }
             }

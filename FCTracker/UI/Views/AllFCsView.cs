@@ -161,7 +161,7 @@ public class AllFCsView : IFCView
         ImGui.TableNextColumn();
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetFCMemberColor(fc.TotalMembers), fc.TotalMembers.ToString());
 
-        if ((fc.MemberCIDs.Count > 0 || fc.MemberNames.Count > 0) && ImGui.IsItemHovered())
+        if ((fc.MemberCIDs.Count > 0 || fc.MemberData.Count > 0) && ImGui.IsItemHovered())
             FCTrackerWidgets.Tooltip(fc.MembersString(true));
 
         ImGui.TableNextColumn();
