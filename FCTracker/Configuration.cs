@@ -711,7 +711,7 @@ public class FCData
 
             if (this.MasterAvailable)
             {
-                sb.Append(this.MasterString);
+                sb.Append(Censor.Character(this.MasterString));
                 sb.Append($" ({this.RankData.SkipWhile(r => r == null).FirstOrDefault()?.Name})\n\t");
             }
 
@@ -722,7 +722,7 @@ public class FCData
                    !string.IsNullOrEmpty(charData.Name))
                 {
                     memberNames.Add(charData.Name);
-                    sb.Append(charData.Name);
+                    sb.Append(Censor.Character(charData.Name));
 
                     if (this.MemberData.FirstOrDefault(fcmd => fcmd.Name == charData.Name) is FCMemberData memberData)
                         sb.Append($" ({(this.RankData[memberData.FCRank] != null ? this.RankData[memberData.FCRank]!.Value.Name : memberData.FCRank)})");
@@ -738,7 +738,7 @@ public class FCData
                 {
                     if (memberNames.Contains(member.Name) || string.IsNullOrEmpty(member.Name))
                         continue;
-                    sb.Append(member.Name);
+                    sb.Append(Censor.Character(member.Name));
 
                     sb.Append($" ({(this.RankData[member.FCRank] != null ? this.RankData[member.FCRank]!.Value.Name : member.FCRank)})");
 
