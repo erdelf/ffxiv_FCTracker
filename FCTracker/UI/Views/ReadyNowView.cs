@@ -84,8 +84,10 @@ public class ReadyNowView : IFCView
 
             if (FCTrackerPlugin.Plugin.IsEntryPeriod)
             {
+                TimeSpan timeForEntry = FCTrackerPlugin.Plugin.EntryPeriodCurrentStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS) - DateTime.Now;
+
                 FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentGreen, 
-                                             $"Entry period active till {FCTrackerPlugin.Plugin.EntryPeriodCurrentStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS):d}");
+                                             $"Entry period active {(timeForEntry.Days > 0 ? $@"till {FCTrackerPlugin.Plugin.EntryPeriodCurrentStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS):d}" : $"for {timeForEntry:%h} hours")}");
             }
             else
             {
