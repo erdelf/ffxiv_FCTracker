@@ -84,17 +84,17 @@ public class ReadyNowView : IFCView
 
             if (FCTrackerPlugin.Plugin.IsEntryPeriod)
             {
-                TimeSpan timeForEntry = FCTrackerPlugin.Plugin.EntryPeriodCurrentStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS) - DateTime.Now;
+                TimeSpan timeForEntry = FCTrackerPlugin.Plugin.EntryPeriodCurrentStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS) - DateTime.UtcNow;
 
                 FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentGreen, 
-                                             $"Entry period active {(timeForEntry.Days > 0 ? $@"till {FCTrackerPlugin.Plugin.EntryPeriodCurrentStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS):d}" : $"for {timeForEntry:%h} hours")}");
+                                             $"Entry period active {(timeForEntry.Days > 0 ? $@"till {FCTrackerPlugin.Plugin.EntryPeriodCurrentStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS):d}" : @$"for {@timeForEntry:%h\h\ %m\m}")}");
             }
             else
             {
-                TimeSpan timeUntilNextEntry = FCTrackerPlugin.Plugin.EntryPeriodNextStartDate - DateTime.Now;
+                TimeSpan timeUntilNextEntry = FCTrackerPlugin.Plugin.EntryPeriodNextStartDate - DateTime.UtcNow;
                 if(timeUntilNextEntry.Days <= 0)
                     FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentGreen,
-                                                 @$"Next Entry period starting in {@timeUntilNextEntry:h\h} to {FCTrackerPlugin.Plugin.EntryPeriodNextStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS):d}");
+                                                 @$"Next Entry period starting in {@timeUntilNextEntry:%h\h\ %m\m} to {FCTrackerPlugin.Plugin.EntryPeriodNextStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS):d}");
                 else
                     FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, 
                                              $"Next Entry period active from {FCTrackerPlugin.Plugin.EntryPeriodNextStartDate:d} to {FCTrackerPlugin.Plugin.EntryPeriodNextStartDate.AddDays(FCTrackerPlugin.ENTRY_PERIOD_DURATION_DAYS):d}");
