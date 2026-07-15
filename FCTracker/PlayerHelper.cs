@@ -11,6 +11,8 @@
     using FFXIVClientStructs.FFXIV.Client.Game.Control;
     using FFXIVClientStructs.FFXIV.Client.Game.UI;
     using Lumina.Excel.Sheets;
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
     using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
 
@@ -47,16 +49,27 @@
 
         internal static unsafe uint GetGrandCompanyRank() => PlayerState.Instance()->GetGrandCompanyRank();
 
-        internal static unsafe short GetHighestCombatLevelFromSheet()
+        internal static unsafe List<(uint cj, short level)> GetHighestCombatLevelsFromSheet()
         {
             PlayerState* playerState = PlayerState.Instance();
-            return Svc.Data.GetExcelSheet<ClassJob>().Where(x => x.Role > 0).Select(j => playerState->ClassJobLevels[j.ExpArrayIndex]).Max();
+            List<(ClassJob cj, short level)> valueTuples = Svc.Data.GetExcelSheet<ClassJob>().Where(x => x.Role > 0).
+                                                                                Select(cj => (cj: cj, level: playerState->ClassJobLevels[cj.ExpArrayIndex])).
+                                                                                Where(x => x.level > 0).Where(x => x.level > 0).ToList();
+
+            IEnumerable<(ClassJob cj, short level)> enumerable = valueTuples.
+                Where(x => x.cj.ClassJobParent.RowId != x.cj.RowId ||
+                           valueTuples.TrueForAll(p => x.cj.RowId == p.cj.RowId || p.cj.ClassJobParent.RowId != x.cj.RowId));
+
+            return enumerable.Select(x => (x.cj.RowId, x.level)).OrderByDescending(x => x.level).ToList();
         }
 
-        internal static unsafe short GetHighestGatheringLevelFromSheet()
+        internal static unsafe List<(uint cj, short level)> GetGatheringLevelsFromSheet()
         {
             PlayerState* playerState = PlayerState.Instance();
-            return Svc.Data.GetExcelSheet<ClassJob>().Where(x => x.ClassJobCategory.RowId == 32).Select(j => playerState->ClassJobLevels[j.ExpArrayIndex]).Max();
+
+            return Svc.Data.GetExcelSheet<ClassJob>().Where(x => x.ClassJobCategory.RowId == 32).
+                       Select(cj => (cj: cj.RowId, level: playerState->ClassJobLevels[cj.ExpArrayIndex])).
+                       Where(x => x.level > 0).Where(x => x.level > 0).OrderByDescending(x => x.level).ToList();
         }
 
 

@@ -45,6 +45,9 @@ public class Configuration
     [JsonProperty]
     public CharViewData CharViewData { get; set; }
 
+    [JsonProperty]
+    public GlobalData GlobalData { get; set; } = new();
+
     public static  AutoRetainerAPI.AutoRetainerApi AR_API = new();
 
     private static ARData? arData;
@@ -348,12 +351,8 @@ public class DataImportConfig
 }
 
 [JsonObject(MemberSerialization.OptOut)]
-public class GatheredData
+public class GatheredData()
 {
-    public GatheredData()
-    {
-    }
-
     [JsonIgnore]
     public DataImportConfig? ImportSourceConfig;
 
@@ -368,6 +367,8 @@ public struct CharViewData
     public bool CharsWithFC;
 
     public bool CharsWithFCWithHouse;
+
+    public bool ShowOnlyHighestCombatLevel;
 }
 
 [JsonObject(MemberSerialization.OptOut)]
@@ -402,14 +403,45 @@ public struct CharData
         }
     }
 
-    public GrandCompany GrandCompany;
-    public uint         GrandCompanyRank;
+    public GrandCompany GrandCompany     = GrandCompany.None;
+    public uint         GrandCompanyRank = 0;
 
-    public short HighestLevelCombat;
-    public short HighestLevelGathering;
+    public List<(uint cj, short level)> LevelsCombat
+    {
+        get => field;
+        set
+        {
+            this.LevelsCombatResolved = null;
+            field                        = value;
+        }
+    }
 
-    public int      LeveAllowances;
-    public DateTime LeveAllowanceTime;
+    [JsonIgnore]
+    public List<(ClassJob cj, short level)> LevelsCombatResolved
+    {
+        get => field ??= this.LevelsCombat.Select(x => (Svc.Data.Excel.GetSheet<ClassJob>()!.GetRow(x.cj), x.level)).ToList();
+        set;
+    }
+
+    public List<(uint cj, short level)> LevelsGathering
+    {
+        get => field;
+        set
+        {
+            this.LevelsGatheringResolved = null;
+            field = value;
+        }
+    }
+
+    [JsonIgnore]
+    public List<(ClassJob cj, short level)> LevelsGatheringResolved
+    {
+        get => field ??= this.LevelsGathering.Select(x => (Svc.Data.Excel.GetSheet<ClassJob>()!.GetRow(x.cj), x.level)).ToList();
+        set;
+    }
+
+    public int      LeveAllowances    = 0;
+    public DateTime LeveAllowanceTime = default;
 
 
     [JsonIgnore]

@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Interface.Textures.TextureWraps;
+using ECommons;
 
 public class CharsView : IFCView
 {
@@ -82,6 +83,12 @@ public class CharsView : IFCView
                     if(FCTrackerWidgets.Checkbox($"Show Chars with FCs with Houses", ref charViewData.CharsWithFCWithHouse))
                         save = true;
                 }
+                ImGuiComponents.HelpMarker("This is not what this is designed for, but we carry enough data for it to be valuable regardless. maybe");
+
+                ImGui.SameLine(0, 15);
+
+                if (FCTrackerWidgets.Checkbox($"Show only highest combat level", ref charViewData.ShowOnlyHighestCombatLevel))
+                    save = true;
 
                 if (save)
                 {
@@ -89,8 +96,6 @@ public class CharsView : IFCView
                     Configuration.Instance.Save();
                 }
             }
-
-            ImGuiComponents.HelpMarker("This is not what this is designed for, but we carry enough data for it to be valuable regardless. maybe");
         }
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 12);
@@ -199,10 +204,46 @@ public class CharsView : IFCView
 
         ImGui.TableNextColumn();
 
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerCombatLevelColor(ch.HighestLevelCombat), ch.HighestLevelCombat.ToString());
+        if (!ch.LevelsCombat.IsNullOrEmpty())
+        {
+            int count = Configuration.Instance.CharViewData.ShowOnlyHighestCombatLevel ? 1 : ch.LevelsCombatResolved.Count;
+            for (int index = 0; index < count; index++)
+            {
+                (ClassJob cj, short level) = ch.LevelsCombatResolved[index];
+                FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerCombatLevelColor(level), level.ToString());
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(cj.Name.ExtractText());
+
+                if (index < count - 1)
+                {
+                    ImGui.SameLine(0, 0);
+                    FCTrackerWidgets.ColoredText(FCTrackerTheme.TextSecondary, "/");
+                    ImGui.SameLine(0, 0);
+                }
+            }
+        }
+
         ImGui.TableNextColumn();
 
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGatheringLevelColor(ch.HighestLevelGathering), ch.HighestLevelGathering.ToString());
+        if(!ch.LevelsGathering.IsNullOrEmpty())
+        {
+            int count = ch.LevelsGatheringResolved.Count;
+            for (int index = 0; index < count; index++)
+            {
+                (ClassJob cj, short level) = ch.LevelsGatheringResolved[index];
+                FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGatheringLevelColor(level), level.ToString());
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(cj.Name.ExtractText());
+
+                if (index < count - 1)
+                {
+                    ImGui.SameLine(0,0);
+                    FCTrackerWidgets.ColoredText(FCTrackerTheme.TextSecondary, "/");
+                    ImGui.SameLine(0,0);
+                }
+            }
+        }
+
         ImGui.TableNextColumn();
 
         
