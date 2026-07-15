@@ -237,6 +237,12 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
         this.TaskManager.Enqueue(() => PlayerHelper.IsReadyFull);
         this.TaskManager.Enqueue(() =>
                                  {
+                                     if (Configuration.Instance.GlobalData.ExcludedChars.Contains(Player.CID))
+                                     {
+                                         this.TaskManager.Abort();
+                                         return;
+                                     }
+
                                      if (Player.Character->FreeCompanyTagString.Length <= 0)
                                      {
                                          Configuration.Instance.UpdateCurrentCharData();

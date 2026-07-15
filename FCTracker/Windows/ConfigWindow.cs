@@ -1,17 +1,16 @@
 namespace FCTracker.Windows;
 
 using Dalamud.Bindings.ImGui;
-using Dalamud.Bindings.ImPlot;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using ECommons.DalamudServices;
 using ECommons.Interop;
 using FCTracker.UI;
-using FFXIVClientStructs.FFXIV.Client.System.Input;
 using NightmareUI.Censoring;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 public class ConfigWindow : Window, IDisposable
@@ -52,6 +51,7 @@ public class ConfigWindow : Window, IDisposable
                     Configuration.Instance.Save();
             }
             DrawImportData();
+            DrawExcludedCharData();
         }
     }
 
@@ -78,7 +78,7 @@ public class ConfigWindow : Window, IDisposable
 
     private static void DrawImportData()
     {
-        using ImRaii.ChildDisposable body = ImRaii.Child("##ConfigBody-ImportData", Vector2.Zero, false);
+        using ImRaii.ChildDisposable body = ImRaii.Child("##ConfigBody-ImportData", new Vector2(0, 84 + 28 * Configuration.Instance.DataImportConfig.Count), false);
         if (!body.Success)
             return;
 
@@ -86,7 +86,6 @@ public class ConfigWindow : Window, IDisposable
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, "Import other accounts data");
 
         ImGui.Spacing();
-
 
         for (int index = 0; index < Configuration.Instance.DataImportConfig.Count; index++)
         {
@@ -133,7 +132,6 @@ public class ConfigWindow : Window, IDisposable
     {
         try
         {
-
             Configuration.Instance.DataImportConfig.Add(new DataImportConfig
                                                         {
                                                             Path    = ofn.file,
@@ -144,6 +142,63 @@ public class ConfigWindow : Window, IDisposable
         catch (Exception e)
         {
             Svc.Log.Error(e, $"Error occurred while loading data");
+        }
+    }
+
+    private static void DrawExcludedCharData()
+    {
+        using ImRaii.ChildDisposable body = ImRaii.Child("##ConfigBody-ExcludedCharData", Vector2.Zero, false);
+        if (!body.Success)
+            return;
+
+        ImGui.SetCursorPos(new Vector2(14, 8));
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, "Excluded Characters");
+        ImGui.Spacing();
+
+        ImGui.SetCursorPosX(14);
+        using (ImRaii.DisabledDisposable _ = 
+            ImRaii.Disabled(FCTrackerPlugin.LoggedInCID == null || Configuration.Instance.GlobalData.ExcludedChars.Contains(FCTrackerPlugin.LoggedInCID.Value)))
+        {
+            if (FCTrackerWidgets.IconButton(FontAwesomeIcon.Plus, "ExcludeCharacter", FCTrackerTheme.AccentBlueDim, FCTrackerTheme.AccentBlue))
+            {
+                if (FCTrackerPlugin.LoggedInCID != null)
+                {
+                    IEnumerable<FCData> fcDatas = Configuration.Instance.GatheredData.FCData.Values.ToList();
+                    foreach (FCData fcData in fcDatas)
+                    {
+                        fcData.MemberCIDs.Remove(FCTrackerPlugin.LoggedInCID.Value);
+                        if(fcData.MemberCIDs.Count == 0)
+                            Configuration.Instance.GatheredData.FCData.Remove(fcData.Id);
+                    }
+
+                    Configuration.Instance.GlobalData.ExcludedChars.Add(FCTrackerPlugin.LoggedInCID.Value);
+                }
+            }
+        }
+
+        for (int index = 0; index < Configuration.Instance.GlobalData.ExcludedChars.Count; index++)
+        {
+            ulong excludedChar = Configuration.Instance.GlobalData.ExcludedChars[index];
+
+            ImGui.SetCursorPosX(10);
+
+            if (FCTrackerWidgets.IconButton(FontAwesomeIcon.TrashAlt, $"CharDelete_{index}", FCTrackerTheme.AccentRed with { W = 0.15f }, FCTrackerTheme.AccentRed))
+            {
+                Configuration.Instance.GlobalData.ExcludedChars.RemoveAt(index);
+                index--;
+
+                Configuration.Instance.RefreshImportedData();
+                Configuration.Instance.Save();
+                continue;
+            }
+
+            ImGui.SameLine();
+            string charName = Configuration.Instance.AllCharData.TryGetValue(excludedChar, out CharData ch) ? $"{ch.Name}@{ch.WorldName}" : excludedChar.ToString();
+            FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, $"{index + 1}: {Censor.Hide(charName)}");
+            ImGui.SameLine();
+            
+
+
         }
     }
 }

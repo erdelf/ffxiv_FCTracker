@@ -135,26 +135,32 @@ public class Configuration
 
     public void UpdateCurrentCharData()
     {
+        if(this.GlobalData.ExcludedChars.Contains(Player.CID))
+            return;
+
         if(!this.GatheredData.CharByCID.TryGetValue(Player.CID, out CharData charData))
             charData = new CharData { CID = Player.CID };
 
         this.GatheredData.CharByCID[Player.CID] = charData with
-                                     {
-                                         Name              = Player.Name,
-                                         WorldId           = Player.HomeWorld.RowId,
-                                         GrandCompany      = (GrandCompany)Player.GrandCompany,
-                                         GrandCompanyRank  = PlayerHelper.GetGrandCompanyRank(),
-                                         LeveAllowances    = Math.Min(100, PlayerHelper.LeveAllowances + 3),
-                                         LeveAllowanceTime = QuestManager.GetNextLeveAllowancesDateTime(),
-                                         HighestLevelCombat = PlayerHelper.GetHighestCombatLevelFromSheet(),
-                                         HighestLevelGathering = PlayerHelper.GetHighestGatheringLevelFromSheet(),
-                                     };
+                                                  {
+                                                      Name = Player.Name,
+                                                      WorldId = Player.HomeWorld.RowId,
+                                                      GrandCompany = (GrandCompany)Player.GrandCompany,
+                                                      GrandCompanyRank = PlayerHelper.GetGrandCompanyRank(),
+                                                      LeveAllowances = Math.Min(100, PlayerHelper.LeveAllowances + 3),
+                                                      LeveAllowanceTime = QuestManager.GetNextLeveAllowancesDateTime(),
+                                                      LevelsCombat = PlayerHelper.GetHighestCombatLevelsFromSheet(),
+                                                      LevelsGathering = PlayerHelper.GetGatheringLevelsFromSheet()
+                                                  };
         this.Save();
     }
 
     public unsafe void UpdateCurrentFCData()
     {
         if (!Player.Available)
+            return;
+
+        if (this.GlobalData.ExcludedChars.Contains(Player.CID))
             return;
 
         InfoProxyFreeCompany* fcProxy = InfoProxyFreeCompany.Instance();
@@ -362,17 +368,22 @@ public class GatheredData()
 }
 
 [JsonObject(MemberSerialization.OptOut)]
+public struct GlobalData()
+{
+    public List<ulong> ExcludedChars { get; set; } = [];
+}
+
+[JsonObject(MemberSerialization.OptOut)]
 public struct CharViewData
 {
     public bool CharsWithFC;
-
     public bool CharsWithFCWithHouse;
 
     public bool ShowOnlyHighestCombatLevel;
 }
 
 [JsonObject(MemberSerialization.OptOut)]
-public struct CharData
+public struct CharData()
 {
     [JsonIgnore]
     public GatheredData SourceData
@@ -381,13 +392,13 @@ public struct CharData
         set;
     }
 
-    public required ulong        CID;
-    public          string       Name;
-    public          uint         WorldId;
-    public          ulong?       FC;
+    public required ulong  CID     = 0;
+    public          string Name    = null;
+    public          uint   WorldId = 0;
+    public          ulong? FC      = null;
 
     [JsonProperty]
-    private uint gil;
+    private uint gil = 0;
     [JsonIgnore]
     public uint Gil
     {
