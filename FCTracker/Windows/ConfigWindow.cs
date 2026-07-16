@@ -195,10 +195,6 @@ public class ConfigWindow : Window, IDisposable
             ImGui.SameLine();
             string charName = Configuration.Instance.AllCharData.TryGetValue(excludedChar, out CharData ch) ? $"{ch.Name}@{ch.WorldName}" : excludedChar.ToString();
             FCTrackerWidgets.ColoredText(FCTrackerTheme.TextPrimary, $"{index + 1}: {Censor.Hide(charName)}");
-            ImGui.SameLine();
-            
-
-
         }
     }
 }
