@@ -179,7 +179,7 @@ public class UpcomingView : IFCView
         {
             FCTrackerWidgets.ColoredText(dotColor, timeLeft.Ticks <= 0 ? "DONE" : $@"{@timeLeft:%d\d\ %h\h}");
             if(ImGui.IsItemHovered())
-                FCTrackerWidgets.Tooltip((DateTime.Today + timeLeft).ToString(CultureInfo.CurrentCulture));
+                FCTrackerWidgets.Tooltip(fc.EligibilityDate.ToString(CultureInfo.CurrentCulture));
         }
 
         ImGui.TableNextColumn();
