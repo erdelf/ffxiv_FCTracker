@@ -178,7 +178,17 @@ public class CharsView : IFCView
         ImGui.TableNextRow();
 
         if (ch.CID == FCTrackerPlugin.LoggedInCID)
+        {
             ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, FCTrackerTheme.RowHighlightColor);
+        }
+        else
+        {
+            ulong? chFC = ch.FC;
+            if (chFC != null)
+                if(Configuration.Instance.AllFCData.TryGetValue(chFC.Value, out FCData? fcData))
+                    if(fcData.IsEligible)
+                        ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(FCTrackerTheme.AccentGreenDim));
+        }
 
         ImGui.TableNextColumn();
 
