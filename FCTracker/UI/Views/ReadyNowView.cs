@@ -130,6 +130,9 @@ public class ReadyNowView : IFCView
 		FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, Censor.Hide(fc.Tag, FCTrackerPlugin.ScrambleTag));
         ImGui.SameLine(0, 6);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, Censor.Character(fc.FCName));
+        if ((fc.MemberCIDs.Count > 0 || fc.MemberData.Count > 0) && ImGui.IsItemHovered())
+            FCTrackerWidgets.Tooltip(fc.MembersString(true));
+
         ImGui.SameLine(0, 10);
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextMuted, $"· {Censor.World(fc.WorldName)} · {Censor.Character(fc.MasterString)}");
         if (selectable)
