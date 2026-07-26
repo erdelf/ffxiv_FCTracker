@@ -15,6 +15,7 @@ using ECommons.ExcelServices;
 using ECommons.GameHelpers;
 using ECommons.IPC;
 using ECommons.Throttlers;
+using FFXIVClientStructs;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -24,6 +25,7 @@ using InteropGenerator.Runtime;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using NightmareUI.Censoring;
+using Services;
 using UI;
 using GrandCompany = FFXIVClientStructs.FFXIV.Client.UI.Agent.GrandCompany;
 
@@ -152,6 +154,7 @@ public class Configuration
                                                       LevelsCombat = PlayerHelper.GetHighestCombatLevelsFromSheet(),
                                                       LevelsGathering = PlayerHelper.GetGatheringLevelsFromSheet()
                                                   };
+        charData.InventoryData.RefreshInventoryData();
         this.Save();
     }
 
@@ -368,8 +371,9 @@ public class GatheredData()
 }
 
 [JsonObject(MemberSerialization.OptOut)]
-public struct GlobalData()
+public class GlobalData
 {
+    public bool GatherDataSelf = true;
     public List<ulong> ExcludedChars { get; set; } = [];
 }
 
@@ -397,22 +401,15 @@ public struct CharData()
     public          uint   WorldId = 0;
     public          ulong? FC      = null;
 
-    [JsonProperty]
-    private uint gil = 0;
-    [JsonIgnore]
-    public uint Gil
+    public InventoryTrackingData InventoryData
     {
-        get
-        {
-            if (ECommonsIPC.AllaganTools.Available && this.SourceData.ImportSourceConfig == null && EzThrottler.Throttle("GilCheck_" + this.CID, 300_0000))
-            {
-                this.gil = ECommonsIPC.AllaganTools.ItemCount(1u, this.CID, -1);
-                Configuration.Instance.UpdateCharData(this);
-            }
-
-            return this.gil;
-        }
+        get => field ??= new InventoryTrackingData()
+                         {
+                             CID = this.CID
+                         };
+        set;
     }
+
 
     public GrandCompany GrandCompany     = GrandCompany.None;
     public uint         GrandCompanyRank = 0;
@@ -423,7 +420,7 @@ public struct CharData()
         set
         {
             this.LevelsCombatResolved = null;
-            field                        = value;
+            field                     = value;
         }
     }
 

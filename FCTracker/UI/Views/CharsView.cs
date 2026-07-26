@@ -257,7 +257,7 @@ public class CharsView : IFCView
         ImGui.TableNextColumn();
 
         
-        uint gilCount = ch.Gil;
+        int gilCount = ch.InventoryData.Gil;
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGilColor(gilCount), gilCount.ToString("##,#"));
         if (ThreadLoadImageHandler.TryGetIconTextureWrap(ExcelItemHelper.Get(1)!.Value.Icon, false, out IDalamudTextureWrap? tex))
         {

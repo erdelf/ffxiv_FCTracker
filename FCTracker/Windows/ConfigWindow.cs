@@ -36,7 +36,7 @@ public class ConfigWindow : Window, IDisposable
         {
             DrawHeader();
 
-            using (ImRaii.ChildDisposable body = ImRaii.Child("##ConfigBody", new Vector2(0, 42), false))
+            using (ImRaii.ChildDisposable body = ImRaii.Child("##ConfigBody", new Vector2(0, 68), false))
             {
                 if (!body.Success)
                     return;
@@ -48,6 +48,12 @@ public class ConfigWindow : Window, IDisposable
                 ImGui.SetCursorPosX(14);*/
 
                 if(FCTrackerWidgets.Checkbox("Scramble Names", ref Censor.Config.Enabled))
+                    Configuration.Instance.Save();
+
+                GlobalData globalData = Configuration.Instance.GlobalData;
+
+                ImGui.SetCursorPosX(14);
+                if (FCTrackerWidgets.Checkbox("Track Inventories if Allagan Tools is not available", ref globalData.GatherDataSelf))
                     Configuration.Instance.Save();
             }
             DrawImportData();
