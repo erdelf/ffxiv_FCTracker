@@ -14,6 +14,7 @@ using Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Game.Text;
 using Dalamud.Interface.Textures.TextureWraps;
 using ECommons;
 
@@ -258,12 +259,7 @@ public class CharsView : IFCView
 
         
         int gilCount = ch.InventoryData.Gil;
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGilColor(gilCount), gilCount.ToString("##,#"));
-        if (ThreadLoadImageHandler.TryGetIconTextureWrap(ExcelItemHelper.Get(1)!.Value.Icon, false, out IDalamudTextureWrap? tex))
-        {
-            ImGui.SameLine(0, 0);
-            ImGui.Image(tex.Handle, new Vector2(ImGuiHelpers.GetButtonSize("X").Y));
-        }
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGilColor(gilCount), $"{gilCount:##,#}{SeIconChar.Gil.ToIconString()}");
 
         ImGui.TableNextColumn();
 
