@@ -56,7 +56,7 @@ namespace FCTracker.Services
 
         public int GetItemCount(uint id)
         {
-            if (ECommonsIPC.AllaganTools.Available && this.CID != 0 && EzThrottler.Throttle($"ItemCheck_{id}_{this.CID}", 300_0000))
+            if (ECommonsIPC.AllaganTools.Available && this.CID != 0 && EzThrottler.Throttle($"ItemCheck_{id}_{this.CID}", 300_000))
             {
                 this.cachedItemCounts     ??= [];
                 uint atCount = ECommonsIPC.AllaganTools.ItemCount(id, this.CID, -1);
