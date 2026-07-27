@@ -5,14 +5,18 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Text;
 using Dalamud.Interface.Utility.Raii;
 using ECommons;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using ECommons.IPC;
+using Lumina.Excel.Sheets;
 using NightmareUI.Censoring;
+using Services;
 
 public class AllFCsView : IFCView
 {
@@ -49,8 +53,36 @@ public class AllFCsView : IFCView
                 ("Pending:", ctx.Data.GetPending30DayCount(), FCTrackerTheme.AccentOrange)
             ],
             right: [
-                ("Repair:", all ? Configuration.ARData.RepairCount : fcs.Sum(fcd => fcd.AutoRetainerData?.RepairCount ?? 0), FCTrackerTheme.AccentPurple),
-                ("Fuel:",   all ? Configuration.ARData.FuelCount   : fcs.Sum(fcd => fcd.AutoRetainerData?.FuelCount   ?? 0), FCTrackerTheme.AccentRed)
+                ("Salvage:", fcs.Sum(fc => fc.MemberCIDsResolved!.Sum(ch => ch.InventoryData.GetSalvageCount)), FCTrackerTheme.AccentYellow, () =>
+                                                                                                                                             {
+                                                                                                                                                 IEnumerable<int[]> counts = fcs.SelectMany(fc => fc.MemberCIDsResolved!.Select(ch => ch.InventoryData.GetSalvageCounts));
+
+                                                                                                                                                 StringBuilder sb = new();
+
+                                                                                                                                                 int[] totalCounts = new int[InventoryTrackingData.SalvageItems.Length];
+
+                                                                                                                                                 foreach (int[] count in counts)
+                                                                                                                                                     for (int i = 0; i < count.Length; i++)
+                                                                                                                                                         totalCounts[i] += count[i];
+
+                                                                                                                                                 long gilTotal = 0;
+
+                                                                                                                                                 for (int i = 0; i < totalCounts.Length; i++)
+                                                                                                                                                 {
+                                                                                                                                                     int itemCount = totalCounts[i];
+                                                                                                                                                     if (itemCount > 0)
+                                                                                                                                                     {
+                                                                                                                                                         Item salvageItem    = InventoryTrackingData.SalvageItems[i]!.Value;
+                                                                                                                                                         long itemTotalPrice = itemCount * salvageItem.PriceLow;
+                                                                                                                                                         gilTotal += itemTotalPrice;
+
+                                                                                                                                                         sb.AppendLine($"{salvageItem.Name} {itemCount}x {salvageItem.PriceLow:##,#}{SeIconChar.Gil.ToIconString()}: {itemTotalPrice:##,#}{SeIconChar.Gil.ToIconString()}");
+                                                                                                                                                     }
+                                                                                                                                                 }
+                                                                                                                                                 sb.Insert(0, $"Total Gil: {gilTotal:##,#}{SeIconChar.Gil.ToIconString()}\n");
+
+                                                                                                                                                 return sb.ToString();
+                                                                                                                                             }),
             ]);
 
         DrawFCTable(ctx);

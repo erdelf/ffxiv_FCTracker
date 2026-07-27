@@ -62,12 +62,12 @@ public class FCTrackerLayout(IFCDataProvider dataProvider)
         => DrawSummaryStrip(stats, null);
 
     public static void DrawSummaryStrip(
-        (string Label, int Value, Vector4 DotColor)[] left,
-        (string Label, int Value, Vector4 DotColor)[]? right)
+        (string Label, int Value, Vector4 DotColor)[]                         left,
+        (string Label, int Value, Vector4 DotColor, Func<string>? tooltip)[]? right)
     {
         using (ImRaii.PushColor(ImGuiCol.ChildBg, FCTrackerTheme.BackgroundCard))
         {
-            using var strip = ImRaii.Child("##SummaryStrip", new Vector2(0, 32), true, ImGuiWindowFlags.NoScrollbar);
+            using ImRaii.ChildDisposable strip = ImRaii.Child("##SummaryStrip", new Vector2(0, 32), true, ImGuiWindowFlags.NoScrollbar);
             if (!strip.Success)
                 return;
 
@@ -80,7 +80,7 @@ public class FCTrackerLayout(IFCDataProvider dataProvider)
                     ImGui.SameLine(0, 24);
                 isFirst = false;
 
-                DrawStatBadge(label, value, dotColor);
+                DrawStatBadge(label, value, dotColor, null);
             }
 
             if (right is { Length: > 0 })
@@ -91,25 +91,25 @@ public class FCTrackerLayout(IFCDataProvider dataProvider)
                 ImGui.SetCursorPosX(posX);
 
                 isFirst = true;
-                foreach ((string label, int value, Vector4 dotColor) in right)
+                foreach ((string label, int value, Vector4 dotColor, Func<string> tooltip) in right)
                 {
                     if (!isFirst)
                         ImGui.SameLine(0, 24);
                     isFirst = false;
 
-                    DrawStatBadge(label, value, dotColor);
+                    DrawStatBadge(label, value, dotColor, tooltip);
                 }
             }
         }
         ImGui.Spacing();
     }
 
-    private static float MeasureBadgeGroupWidth((string Label, int Value, Vector4 DotColor)[] stats)
+    private static float MeasureBadgeGroupWidth((string Label, int Value, Vector4 DotColor, Func<string> tooltip)[] stats)
     {
         float total = 0;
         for (int i = 0; i < stats.Length; i++)
         {
-            (string label, int value, _) = stats[i];
+            (string label, int value, _, _) = stats[i];
             float labelW = ImGui.CalcTextSize(label).X;
             float valueW = ImGui.CalcTextSize(value.ToString()).X;
             total += 14 + labelW + 4 + valueW;
@@ -118,7 +118,7 @@ public class FCTrackerLayout(IFCDataProvider dataProvider)
         return total;
     }
 
-    private static void DrawStatBadge(string label, int value, Vector4 dotColor)
+    private static void DrawStatBadge(string label, int value, Vector4 dotColor, Func<string>? tooltip)
     {
         Vector2 cursorPos = ImGui.GetCursorScreenPos();
         ImDrawListPtr drawList = ImGui.GetWindowDrawList();
@@ -131,7 +131,13 @@ public class FCTrackerLayout(IFCDataProvider dataProvider)
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 14);
 
         FCTrackerWidgets.ColoredText(FCTrackerTheme.TextSecondary, label);
+        bool hovered = ImGui.IsItemHovered();
+
         ImGui.SameLine(0, 4);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, value.ToString());
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, value.ToString("##,#"));
+
+        hovered |= ImGui.IsItemHovered();
+        if(hovered && tooltip != null)
+            FCTrackerWidgets.Tooltip(tooltip());
     }
 }

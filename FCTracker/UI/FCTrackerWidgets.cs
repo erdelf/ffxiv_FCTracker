@@ -57,16 +57,9 @@ public static class FCTrackerWidgets
 
     public static void Tooltip(string tooltip)
     {
-        if (ImGui.IsItemHovered())
-        {
-            using (ImRaii.Tooltip())
-            {
-                using (ImRaii.TextWrapPos(ImGui.GetFontSize() * 35.0f))
-                {
-                    ImGui.Text(tooltip);
-                }
-            }
-        }
+        using (ImRaii.Tooltip())
+        using (ImRaii.TextWrapPos(ImGui.GetFontSize() * 35.0f))
+            ImGui.Text(tooltip);
     }
 
     public static void TableHeadersRowWithTooltips(IReadOnlyDictionary<string, string> tooltips)

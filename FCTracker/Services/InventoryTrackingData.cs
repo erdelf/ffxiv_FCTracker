@@ -4,9 +4,11 @@ using System.Collections.Generic;
 
 namespace FCTracker.Services
 {
-    using ECommons.DalamudServices;
+    using System.Linq;
+    using ECommons.ExcelServices;
     using ECommons.IPC;
     using ECommons.Throttlers;
+    using Lumina.Excel.Sheets;
     using Newtonsoft.Json;
 
     [JsonObject(MemberSerialization.OptIn)]
@@ -44,6 +46,12 @@ namespace FCTracker.Services
         }
 
         public int Gil => this.GetItemCount(1);
+
+        private static readonly uint[]  SALVAGE_ITEM_IDS = [22500u, 22501u, 22502u, 22503u, 22504u, 22505u, 22506u, 22507u];
+        public static           Item?[] SalvageItems       => field ??= SALVAGE_ITEM_IDS.Select(ExcelItemHelper.Get).Where(item => item != null).ToArray();
+        public                  int     GetSalvageCount  => SalvageItems.Sum(item => this.GetItemCount(item!.Value.RowId));
+        public                  int[]   GetSalvageCounts => SalvageItems.Select(item => this.GetItemCount(item!.Value.RowId)).ToArray();
+
 
         public int GetItemCount(uint id)
         {
