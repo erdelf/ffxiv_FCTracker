@@ -187,7 +187,8 @@ public class Configuration
 
         fcData.MemberCIDs.Add(Player.CID);
 
-        fcData.FCName       = fcProxy->NameString;
+        if(!fcProxy->NameString.IsNullOrEmpty())
+            fcData.FCName = fcProxy->NameString;
         fcData.TotalMembers = fcProxy->TotalMembers;
         fcData.MasterString = fcProxy->MasterString;
         fcData.Rank         = fcProxy->Rank;
@@ -526,18 +527,26 @@ public class FCData
 
     [JsonIgnore]
     public World? World => field ??= ExcelWorldHelper.Get(this.HomeWorldId);
-    public ulong          Id           { get; set; }
-    public string         FCName       { get; set; } = string.Empty;
-    public string         Tag          { get; set; } = string.Empty;
-    public uint           TotalMembers { get; set; }
-    public string         MasterString { get; set; } = string.Empty;
-    public uint           HomeWorldId  { get; set; }
-    public GrandCompany   GrandCompany { get; set; }
-    public uint           Rank         { get; set; }
-    public DateTime       FoundingDate { get; set; }
-    public int            FCPoints     { get; set; }
-    public HashSet<ulong> MemberCIDs   { get; set; } = [];
-    public HashSet<FCMemberData> MemberData { get; set; } = [];
+    public ulong        Id           { get; set; }
+    public string       FCName       { get; set; } = string.Empty;
+    public string       Tag          { get; set; } = string.Empty;
+    public uint         TotalMembers { get; set; }
+    public string       MasterString { get; set; } = string.Empty;
+    public uint         HomeWorldId  { get; set; }
+    public GrandCompany GrandCompany { get; set; }
+    public uint         Rank         { get; set; }
+    public DateTime     FoundingDate { get; set; }
+    public int          FCPoints     { get; set; }
+
+    [JsonIgnore]
+    public HashSet<CharData>? MemberCIDsResolved
+    {
+        get => field ??= this.MemberCIDs.Select(cid => Configuration.Instance.AllCharData.GetValueOrDefault(cid)).Where(d => d.CID != 0).Select(d => d!).ToHashSet();
+        set;
+    }
+
+    public HashSet<ulong>        MemberCIDs { get;      set; } = [];
+    public HashSet<FCMemberData> MemberData { get;      set; } = [];
 
     [JsonProperty]
     private ARData? autoRetainerData;
@@ -704,7 +713,8 @@ public class FCData
     public void AddMember(ulong cid)
     {
         this.MemberCIDs.Add(cid);
-        this.masterAvailable = null;
+        this.masterAvailable    = null;
+        this.MemberCIDsResolved = null;
     }
 
     public void RecacheARData()

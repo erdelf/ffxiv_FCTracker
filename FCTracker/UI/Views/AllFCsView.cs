@@ -83,6 +83,8 @@ public class AllFCsView : IFCView
 
                                                                                                                                                  return sb.ToString();
                                                                                                                                              }),
+                ("Repair:", all ? Configuration.ARData.RepairCount : fcs.Sum(fcd => fcd.AutoRetainerData?.RepairCount ?? 0), FCTrackerTheme.AccentPurple, null),
+                ("Fuel:",   all ? Configuration.ARData.FuelCount   : fcs.Sum(fcd => fcd.AutoRetainerData?.FuelCount   ?? 0), FCTrackerTheme.AccentRed, null)
             ]);
 
         DrawFCTable(ctx);
@@ -225,11 +227,11 @@ public class AllFCsView : IFCView
         {
             ARData data = fc.AutoRetainerData.Value;
 
-            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerFuelColor(data.FuelCount), data.FuelCount.ToString());
+            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerFuelColor(data.FuelCount), data.FuelCount.ToString("##,#"));
 
             ImGui.TableNextColumn();
 
-            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerRepairColor(data.RepairCount), data.RepairCount.ToString());
+            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerRepairColor(data.RepairCount), data.RepairCount.ToString("##,#"));
         } else
         {
             ImGui.TableNextColumn();
