@@ -5,6 +5,7 @@ using System.Collections.Generic;
 namespace FCTracker.Services
 {
     using System.Linq;
+    using ECommons.DalamudServices;
     using ECommons.ExcelServices;
     using ECommons.IPC;
     using ECommons.Throttlers;
@@ -58,7 +59,12 @@ namespace FCTracker.Services
             if (ECommonsIPC.AllaganTools.Available && this.CID != 0 && EzThrottler.Throttle($"ItemCheck_{id}_{this.CID}", 300_0000))
             {
                 this.cachedItemCounts     ??= [];
-                this.cachedItemCounts[id] =   (int) ECommonsIPC.AllaganTools.ItemCount(id, this.CID, -1);
+                uint atCount = ECommonsIPC.AllaganTools.ItemCount(id, this.CID, -1);
+
+                Svc.Log.Debug($"Item count polled from AT for {id} for CID {this.CID}: {atCount}");
+
+                this.cachedItemCounts[id] =   (int) atCount;
+
             }
 
             return this.CachedItemCounts.GetValueOrDefault(id, 0);
