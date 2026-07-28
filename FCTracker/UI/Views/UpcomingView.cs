@@ -100,7 +100,8 @@ public class UpcomingView : IFCView
         using ImRaii.TableDisposable table = ImRaii.Table("##UpcomingTable", 6, flags);
         if (!table.Success) 
             return;
-        ImGui.TableSetupScrollFreeze(3, 1);
+
+        ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("Date",      ImGuiTableColumnFlags.WidthFixed, 90);
         ImGui.TableSetupColumn("Days",      ImGuiTableColumnFlags.WidthFixed, 45);
         ImGui.TableSetupColumn("GC",        ImGuiTableColumnFlags.WidthFixed, 45);

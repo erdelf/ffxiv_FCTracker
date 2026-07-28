@@ -52,7 +52,7 @@ public class ReadyNowView : IFCView
         if (!table.Success) 
             return;
 
-        ImGui.TableSetupScrollFreeze(4, 1);
+        ImGui.TableSetupScrollFreeze(0, 1);
 
         ImGui.TableSetupColumn("Status", ImGuiTableColumnFlags.WidthFixed, 75);
         ImGui.TableSetupColumn("FC", ImGuiTableColumnFlags.WidthFixed, 540);
