@@ -134,7 +134,7 @@ public class FCTrackerLayout(IFCDataProvider dataProvider)
         bool hovered = ImGui.IsItemHovered();
 
         ImGui.SameLine(0, 4);
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, value.ToString("##,#"));
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.TextBright, value.ToString("##,#0"));
 
         hovered |= ImGui.IsItemHovered();
         if(hovered && tooltip != null)

@@ -76,10 +76,10 @@ public class AllFCsView : IFCView
                                                                                                                                                          long itemTotalPrice = itemCount * salvageItem.PriceLow;
                                                                                                                                                          gilTotal += itemTotalPrice;
 
-                                                                                                                                                         sb.AppendLine($"{salvageItem.Name} {itemCount}x {salvageItem.PriceLow:##,#}{SeIconChar.Gil.ToIconString()}: {itemTotalPrice:##,#}{SeIconChar.Gil.ToIconString()}");
+                                                                                                                                                         sb.AppendLine($"{salvageItem.Name} {itemCount}x {salvageItem.PriceLow:##,#0}{SeIconChar.Gil.ToIconString()}: {itemTotalPrice:##,#0}{SeIconChar.Gil.ToIconString()}");
                                                                                                                                                      }
                                                                                                                                                  }
-                                                                                                                                                 sb.Insert(0, $"Total Gil: {gilTotal:##,#}{SeIconChar.Gil.ToIconString()}\n");
+                                                                                                                                                 sb.Insert(0, $"Total Gil: {gilTotal:##,#0}{SeIconChar.Gil.ToIconString()}\n");
 
                                                                                                                                                  return sb.ToString();
                                                                                                                                              }),
@@ -227,11 +227,11 @@ public class AllFCsView : IFCView
         {
             ARData data = fc.AutoRetainerData.Value;
 
-            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerFuelColor(data.FuelCount), data.FuelCount.ToString("##,#"));
+            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerFuelColor(data.FuelCount), data.FuelCount.ToString("##,#0"));
 
             ImGui.TableNextColumn();
 
-            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerRepairColor(data.RepairCount), data.RepairCount.ToString("##,#"));
+            FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerRepairColor(data.RepairCount), data.RepairCount.ToString("##,#0"));
         } else
         {
             ImGui.TableNextColumn();

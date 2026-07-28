@@ -259,7 +259,7 @@ public class CharsView : IFCView
 
         
         int gilCount = ch.InventoryData.Gil;
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGilColor(gilCount), $"{gilCount:##,#}{SeIconChar.Gil.ToIconString()}");
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerGilColor(gilCount), $"{gilCount:##,#0}{SeIconChar.Gil.ToIconString()}");
 
         ImGui.TableNextColumn();
 
