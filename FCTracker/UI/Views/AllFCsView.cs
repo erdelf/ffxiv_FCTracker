@@ -7,7 +7,6 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.Text;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ECommons;
@@ -16,7 +15,6 @@ using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.IPC;
-using Lumina.Excel.Sheets;
 using NightmareUI.Censoring;
 using Services;
 
@@ -66,24 +64,7 @@ public class AllFCsView : IFCView
                                                                                                                                                  foreach (int[] count in counts)
                                                                                                                                                      for (int i = 0; i < count.Length; i++)
                                                                                                                                                          totalCounts[i] += count[i];
-
-                                                                                                                                                 long gilTotal = 0;
-
-                                                                                                                                                 for (int i = 0; i < totalCounts.Length; i++)
-                                                                                                                                                 {
-                                                                                                                                                     int itemCount = totalCounts[i];
-                                                                                                                                                     if (itemCount > 0)
-                                                                                                                                                     {
-                                                                                                                                                         Item salvageItem    = InventoryTrackingData.SalvageItems[i]!.Value;
-                                                                                                                                                         long itemTotalPrice = itemCount * salvageItem.PriceLow;
-                                                                                                                                                         gilTotal += itemTotalPrice;
-
-                                                                                                                                                         sb.AppendLine($"{salvageItem.Name} {itemCount}x {salvageItem.PriceLow:##,#0}{SeIconChar.Gil.ToIconString()}: {itemTotalPrice:##,#0}{SeIconChar.Gil.ToIconString()}");
-                                                                                                                                                     }
-                                                                                                                                                 }
-                                                                                                                                                 sb.Insert(0, $"Total Gil: {gilTotal:##,#0}{SeIconChar.Gil.ToIconString()}\n");
-
-                                                                                                                                                 return sb.ToString();
+                                                                                                                                                 return InventoryTrackingData.GetSalvageText(totalCounts);
                                                                                                                                              }),
                 ("Repair:", all ? Configuration.ARData.RepairCount : fcs.Sum(fcd => fcd.AutoRetainerData?.RepairCount ?? 0), FCTrackerTheme.AccentPurple, null),
                 ("Fuel:",   all ? Configuration.ARData.FuelCount   : fcs.Sum(fcd => fcd.AutoRetainerData?.FuelCount   ?? 0), FCTrackerTheme.AccentRed, null)
@@ -104,7 +85,7 @@ public class AllFCsView : IFCView
                                       ImGuiTableFlags.SizingFixedFit |
                                       ImGuiTableFlags.Resizable;
 
-        using var table = ImRaii.Table("##FCTable", 11, flags);
+        using ImRaii.TableDisposable table = ImRaii.Table("##FCTable", 12, flags);
         if (!table.Success)
             return;
 
@@ -117,6 +98,7 @@ public class AllFCsView : IFCView
         ImGui.TableSetupColumn("Actions",      ImGuiTableColumnFlags.WidthFixed, 80);
         ImGui.TableSetupColumn("Fuel",         ImGuiTableColumnFlags.WidthFixed, 20);
         ImGui.TableSetupColumn("Repair",       ImGuiTableColumnFlags.WidthFixed, 20);
+        ImGui.TableSetupColumn("Salvage",      ImGuiTableColumnFlags.WidthFixed, 20);
         ImGui.TableSetupColumn("Status",       ImGuiTableColumnFlags.WidthFixed, 140);
         ImGui.TableSetupColumn("Demolition",   ImGuiTableColumnFlags.WidthFixed, 60);
         ImGui.TableSetupColumn("##Spacer",     ImGuiTableColumnFlags.WidthStretch);
@@ -213,6 +195,11 @@ public class AllFCsView : IFCView
 
         ImGui.TableNextColumn();
         DrawFuelAndRepairCells(fc);
+
+        ImGui.TableNextColumn();
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentYellow, fc.MemberCIDsResolved?.Sum(ch => ch.InventoryData.GetSalvageCount).ToString("##,#0") ?? "—");
+        if(ImGui.IsItemHovered())
+            FCTrackerWidgets.Tooltip(fc.MemberCIDsResolved?.Select(ch => $"{Censor.Character(ch.Name)}:\n\t{InventoryTrackingData.GetSalvageText(ch.InventoryData.GetSalvageCounts)}").Join("\n") ?? "No salvage data");
 
         ImGui.TableNextColumn();
         DrawStatusCell(fc);

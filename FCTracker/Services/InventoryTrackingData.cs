@@ -5,6 +5,8 @@ using System.Collections.Generic;
 namespace FCTracker.Services
 {
     using System.Linq;
+    using System.Text;
+    using Dalamud.Game.Text;
     using ECommons.DalamudServices;
     using ECommons.ExcelServices;
     using ECommons.IPC;
@@ -53,6 +55,27 @@ namespace FCTracker.Services
         public                  int     GetSalvageCount  => SalvageItems.Sum(item => this.GetItemCount(item!.Value.RowId));
         public                  int[]   GetSalvageCounts => SalvageItems.Select(item => this.GetItemCount(item!.Value.RowId)).ToArray();
 
+        public static string GetSalvageText(int[] counts)
+        {
+            StringBuilder sb       = new();
+
+            long gilTotal = 0;
+
+            for (int i = 0; i < counts.Length; i++)
+            {
+                int itemCount = counts[i];
+                if (itemCount > 0)
+                {
+                    Item salvageItem    = SalvageItems[i]!.Value;
+                    long itemTotalPrice = itemCount * salvageItem.PriceLow;
+                    gilTotal += itemTotalPrice;
+
+                    sb.AppendLine($"{salvageItem.Name} {itemCount}x {salvageItem.PriceLow:##,#0}{SeIconChar.Gil.ToIconString()}: {itemTotalPrice:##,#0}{SeIconChar.Gil.ToIconString()}");
+                }
+            }
+            sb.Insert(0, $"Total Gil: {gilTotal:##,#0}{SeIconChar.Gil.ToIconString()}\n");
+            return sb.ToString();
+        }
 
         public int GetItemCount(uint id)
         {
