@@ -56,9 +56,9 @@ namespace FCTracker.Services
 
         public int GetItemCount(uint id)
         {
-            if (ECommonsIPC.AllaganTools.Available && this.CID != 0 && EzThrottler.Throttle($"ItemCheck_{id}_{this.CID}", 300_000))
+            this.cachedItemCounts ??= [];
+            if (ECommonsIPC.AllaganTools.Available && this.CID != 0 && (!this.cachedItemCounts.ContainsKey(id) || EzThrottler.Throttle($"ItemCheck_{id}_{this.CID}", 300_000)))
             {
-                this.cachedItemCounts     ??= [];
                 uint atCount = ECommonsIPC.AllaganTools.ItemCount(id, this.CID, -1);
 
                 Svc.Log.Debug($"Item count polled from AT for {id} for CID {this.CID}: {atCount}");
@@ -78,6 +78,8 @@ namespace FCTracker.Services
 
         public unsafe void RefreshInventoryData()
         {
+            this.cachedItemCounts?.Clear();
+
             if (!Configuration.Instance.GlobalData.GatherDataSelf || ECommonsIPC.AllaganTools.Available)
                 return;
 
