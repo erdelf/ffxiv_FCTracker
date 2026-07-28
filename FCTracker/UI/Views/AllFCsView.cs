@@ -8,11 +8,13 @@ using System.Numerics;
 using System.Text;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ECommons;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
+using ECommons.ImGuiMethods;
 using ECommons.IPC;
 using Lumina.Excel.Sheets;
 using NightmareUI.Censoring;
@@ -219,6 +221,25 @@ public class AllFCsView : IFCView
 
         DrawDemolitionCell(fc);
         ImGui.TableNextColumn();
+
+
+        using (ImRaii.Disabled(!ImGui.GetIO().KeyCtrl))
+        using (ImRaii.PushColor(ImGuiCol.Button, FCTrackerTheme.AccentRed with { W = 0.15f.Scale() }))
+        using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.AccentRed))
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            if (ImGui.Button($"{FontAwesomeIcon.TrashAlt.ToIconString()}###deleteData{fc.Id}", new Vector2(28f.Scale(), 0)))
+            {
+                if (fc.MemberCIDsResolved != null)
+                    foreach (CharData charData in fc.MemberCIDsResolved)
+                        Configuration.Instance.GatheredData.CharByCID.Remove(charData.CID);
+
+                Configuration.Instance.GatheredData.FCData.Remove(fc.Id);
+                Configuration.Instance.Save();
+            }
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Clear fc data\nHold Ctrl to enable");
     }
 
     private static void DrawFuelAndRepairCells(FCData fc)

@@ -267,5 +267,22 @@ public class CharsView : IFCView
 
         ImGui.TableNextColumn();
 
+        using (ImRaii.Disabled(!ImGui.GetIO().KeyCtrl))
+        using (ImRaii.PushColor(ImGuiCol.Button, FCTrackerTheme.AccentRed with { W = 0.15f.Scale() }))
+        using (ImRaii.PushColor(ImGuiCol.Text, FCTrackerTheme.AccentRed))
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            if (ImGui.Button($"{FontAwesomeIcon.TrashAlt.ToIconString()}###deleteData{ch.CID}", new Vector2(28f.Scale(), 0)))
+            {
+                if (ch.FC != null)
+                    if (Configuration.Instance.AllFCData.TryGetValue(ch.FC.Value, out FCData? fcData))
+                        fcData.MemberCIDsResolved = null;
+
+                Configuration.Instance.GatheredData.CharByCID.Remove(ch.CID);
+                Configuration.Instance.Save();
+            }
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Clear char data\nHold Ctrl to enable");
     }
 }
