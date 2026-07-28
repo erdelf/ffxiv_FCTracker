@@ -63,8 +63,7 @@ namespace FCTracker.Services
 
                 Svc.Log.Debug($"Item count polled from AT for {id} for CID {this.CID}: {atCount}");
 
-                this.cachedItemCounts[id] =   (int) atCount;
-
+                this.cachedItemCounts[id] = (int)atCount;
             }
 
             return this.CachedItemCounts.GetValueOrDefault(id, 0);

@@ -143,9 +143,10 @@ public class Configuration
         if(!this.GatheredData.CharByCID.TryGetValue(Player.CID, out CharData charData))
             charData = new CharData { CID = Player.CID };
 
+        charData.InventoryData.RefreshInventoryData();
         this.GatheredData.CharByCID[Player.CID] = charData with
                                                   {
-                                                      Name = Player.Name,
+                                                      Name = Player.Name!,
                                                       WorldId = Player.HomeWorld.RowId,
                                                       GrandCompany = (GrandCompany)Player.GrandCompany,
                                                       GrandCompanyRank = PlayerHelper.GetGrandCompanyRank(),
@@ -154,7 +155,6 @@ public class Configuration
                                                       LevelsCombat = PlayerHelper.GetHighestCombatLevelsFromSheet(),
                                                       LevelsGathering = PlayerHelper.GetGatheringLevelsFromSheet()
                                                   };
-        charData.InventoryData.RefreshInventoryData();
         this.Save();
     }
 
