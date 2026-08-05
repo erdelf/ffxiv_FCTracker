@@ -171,19 +171,23 @@ public class Configuration
         if (fcProxy->Id == 0)
             return;
 
+        static void VerboseLog(string message) => Svc.Log.Verbose($"[FC Data Collection] {message}");
+
+        VerboseLog("Updating FC data");
+
         this.UpdateCurrentCharData();
 
         this.GatheredData.CharByCID[Player.CID] = this.GatheredData.CharByCID[Player.CID] with {FC = fcProxy->Id};
 
         if (!this.GatheredData.FCData.TryGetValue(fcProxy->Id, out FCData? fcData))
-        {
             fcData = new FCData
                      {
                          HomeWorldId  = fcProxy->HomeWorldId,
                          Id           = fcProxy->Id,
                          GrandCompany = fcProxy->GrandCompany,
                      };
-        }
+
+        VerboseLog("Initial Setup");
 
         fcData.MemberCIDs.Add(Player.CID);
 
@@ -193,9 +197,12 @@ public class Configuration
         fcData.MasterString = fcProxy->MasterString;
         fcData.Rank         = fcProxy->Rank;
 
+        VerboseLog("Getting Founding Date");
+
         int date = AgentFreeCompanyProfile.Instance()->FoundationDate;
         fcData.FoundingDate = DateTimeOffset.FromUnixTimeSeconds(date).DateTime;
 
+        VerboseLog("Getting Tag Data");
         StringArrayData* arrayDataString = RaptureAtkModule.Instance()->GetStringArrayData(48);
         if (arrayDataString->Size > 1)
         {
@@ -204,6 +211,8 @@ public class Configuration
 
             fcData.Tag = seString.GetText();
         }
+
+        VerboseLog("Getting Member Data");
 
         arrayDataString = RaptureAtkModule.Instance()->GetStringArrayData(37);
         NumberArrayData* arrayDataNumber = RaptureAtkModule.Instance()->GetNumberArrayData(40);
@@ -223,9 +232,9 @@ public class Configuration
             }
         }
 
+        VerboseLog("Getting Rank Data");
         arrayDataString = RaptureAtkModule.Instance()->GetStringArrayData(43);
         if(arrayDataString->Size > 1)
-        {
             for(int i = 0; i < 15; i++)
             {
                 CStringPointer x        = arrayDataString->StringArray[i];
@@ -239,8 +248,8 @@ public class Configuration
                                              Name = text
                                          };
             }
-        }
 
+        VerboseLog("Getting Action Data");
         arrayDataNumber = RaptureAtkModule.Instance()->GetNumberArrayData(62);
         if (arrayDataNumber->Size > 1)
         {
@@ -269,8 +278,11 @@ public class Configuration
             }
         }
 
+        VerboseLog("Getting FC Points");
 
         fcData.FCPoints = *(int*)((nint)AgentModule.Instance()->GetAgentByInternalId(AgentId.FreeCompanyCreditShop) + 256);
+
+        VerboseLog("Getting House Info");
 
         HouseId houseId = HousingManager.GetOwnedHouseId(EstateType.FreeCompanyEstate);
         if (houseId.Unit.Value < 255)
