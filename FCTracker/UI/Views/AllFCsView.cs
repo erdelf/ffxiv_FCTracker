@@ -57,8 +57,6 @@ public class AllFCsView : IFCView
                                                                                                                                              {
                                                                                                                                                  IEnumerable<int[]> counts = fcs.SelectMany(fc => fc.MemberCIDsResolved!.Select(ch => ch.InventoryData.GetSalvageCounts));
 
-                                                                                                                                                 StringBuilder sb = new();
-
                                                                                                                                                  int[] totalCounts = new int[InventoryTrackingData.SalvageItems.Length];
 
                                                                                                                                                  foreach (int[] count in counts)

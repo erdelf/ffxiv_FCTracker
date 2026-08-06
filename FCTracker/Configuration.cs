@@ -13,15 +13,13 @@ using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameHelpers;
-using ECommons.IPC;
-using ECommons.Throttlers;
-using FFXIVClientStructs;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using InteropGenerator.Runtime;
+using IPC;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using NightmareUI.Censoring;
@@ -748,7 +746,7 @@ public class FCData
         this.HasHouse ?
             $"{this.House!.City} - Ward {this.House.Ward + 1} - Plot {this.House.Plot + 1}" :
             this.IsEligible ?
-                "Eligible" :
+                Censor.Hide(HouseHunterIPC.Instance.GetLotteryTextForFC(this) ?? "Eligible", "Bidding") :
                 this.FoundingDate == default ?
                     "Not yet founded" :
                     this.TimeSinceFounded.TotalDays >= 30 ?

@@ -8,6 +8,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.IPC;
+using IPC;
 using NightmareUI.Censoring;
 
 public class ReadyNowView : IFCView
@@ -142,5 +143,6 @@ public class ReadyNowView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetFCPointColor(fc.FCPoints), fc.FCPoints.ToString("N0"));
 
         ImGui.TableNextColumn();
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, Censor.Hide(HouseHunterIPC.Instance.GetLotteryTextForFC(fc) ?? string.Empty, "Bidding"));
     }
 }
