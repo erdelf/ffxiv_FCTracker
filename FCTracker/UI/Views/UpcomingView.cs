@@ -89,7 +89,7 @@ public class UpcomingView : IFCView
         List<FCData> nextWeek = upcomingFCs.Where(fc => fc.EligibilityDate > thisWeekEnd  && fc.EligibilityDate <= nextWeekEnd).ToList();
 
         List<IGrouping<string, FCData>> later = upcomingFCs.Where(fc => fc.EligibilityDate > nextWeekEnd)
-                                                           .GroupBy(fc => fc.FoundingDate != default ? $"In {(fc.EligibilityDate - now).Days / 7 + 1} weeks" : "Unregistered")
+                                                           .GroupBy(fc => fc.EligibilityDateReference != default ? $"In {(fc.EligibilityDate - now).Days / 7 + 1} weeks" : "Unregistered")
                                                            .ToList();
 
         const ImGuiTableFlags flags = ImGuiTableFlags.ScrollY        |
@@ -151,7 +151,7 @@ public class UpcomingView : IFCView
         if (fc.LoggedIn)
             ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, FCTrackerTheme.RowHighlightColor);
 
-        bool hasDate = fc.FoundingDate != default;
+        bool hasDate = fc.EligibilityDateReference != default;
 
         TimeSpan timeLeft = fc.TimeUntilEligible;
         HousingStatusCategory category = timeLeft.TotalDays <= 3 ? HousingStatusCategory.Ready :

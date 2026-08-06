@@ -223,8 +223,8 @@ public class AllFCsView : IFCView
                 Configuration.Instance.Save();
             }
         }
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Clear fc data\nHold Ctrl to enable");
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+            FCTrackerWidgets.Tooltip("Clear fc data\nHold Ctrl to enable");
     }
 
     private static void DrawFuelAndRepairCells(FCData fc)
@@ -290,6 +290,8 @@ public class AllFCsView : IFCView
 
     private static void DrawStatusCell(FCData fc)
     {
+        ImGui.AlignTextToFramePadding();
+
         bool selectable = fc.SourceData.ImportSourceConfig == null && fc.MemberCIDs.Count != 0 && fc.HasHouse;
 
         if (selectable)
@@ -304,14 +306,42 @@ public class AllFCsView : IFCView
         Vector2 cursorPos = ImGui.GetCursorScreenPos();
         ImDrawListPtr drawList = ImGui.GetWindowDrawList();
         drawList.AddCircleFilled(
-            new Vector2(cursorPos.X + 4, cursorPos.Y + 8),
+            new Vector2(cursorPos.X + 4, cursorPos.Y + 12),
             4,
             ImGui.GetColorU32(color)
         );
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 14);
 
-        FCTrackerWidgets.ColoredText(color, (fc.HasHouse ? Censor.Hide(fc.GetHousingStatusText(), "House owned") : fc.GetHousingStatusText()));
+        FCTrackerWidgets.ColoredText(color, fc.HasHouse ? Censor.Hide(fc.GetHousingStatusText(), "House owned") : fc.GetHousingStatusText());
+
+        if (!fc.HasHouse)
+        {
+            ImGui.SameLine();
+
+            using (ImRaii.Disabled(!ImGui.GetIO().KeyCtrl))
+            {
+                Vector4 accentColor = (fc.EligibilityDateReferenceOverride == null ? FCTrackerTheme.AccentBlue : FCTrackerTheme.AccentRed);
+                using (ImRaii.PushColor(ImGuiCol.Button, accentColor with { W = 0.15f.Scale() }))
+                using (ImRaii.PushColor(ImGuiCol.Text, accentColor))
+                using (ImRaii.PushFont(UiBuilder.IconFont))
+                {
+                    if (ImGui.Button($"{FontAwesomeIcon.Sync.ToIconString()}###setEligibilityOverrideDate{fc.Id}", new Vector2(28f.Scale(), 0)))
+                    {
+                        if(fc.EligibilityDateReferenceOverride == null)
+                            fc.EligibilityDateReferenceOverride = DateTime.Now;
+                        else
+                            fc.EligibilityDateReferenceOverride = null;
+
+                        Configuration.Instance.Save();
+                    }
+                }
+            }
+
+            if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+                FCTrackerWidgets.Tooltip("Set Calculation Date to right now or reset to Founding Date\nHold Ctrl to enable");
+        }
+
 
         void TeleportToFCHouse()
         {

@@ -537,16 +537,21 @@ public class FCData
 
     [JsonIgnore]
     public World? World => field ??= ExcelWorldHelper.Get(this.HomeWorldId);
-    public ulong        Id           { get; set; }
-    public string       FCName       { get; set; } = string.Empty;
-    public string       Tag          { get; set; } = string.Empty;
-    public uint         TotalMembers { get; set; }
-    public string       MasterString { get; set; } = string.Empty;
-    public uint         HomeWorldId  { get; set; }
-    public GrandCompany GrandCompany { get; set; }
-    public uint         Rank         { get; set; }
-    public DateTime     FoundingDate { get; set; }
-    public int          FCPoints     { get; set; }
+    public ulong        Id                               { get; set; }
+    public string       FCName                           { get; set; } = string.Empty;
+    public string       Tag                              { get; set; } = string.Empty;
+    public uint         TotalMembers                     { get; set; }
+    public string       MasterString                     { get; set; } = string.Empty;
+    public uint         HomeWorldId                      { get; set; }
+    public GrandCompany GrandCompany                     { get; set; }
+    public uint         Rank                             { get; set; }
+    public DateTime     FoundingDate                     { get; set; }
+    public DateTime?    EligibilityDateReferenceOverride { get; set; }
+
+    [JsonIgnore]
+    public DateTime EligibilityDateReference => this.EligibilityDateReferenceOverride ?? this.FoundingDate;
+
+    public int FCPoints { get; set; }
 
     [JsonIgnore]
     public HashSet<CharData>? MemberCIDsResolved
@@ -668,16 +673,22 @@ public class FCData
             DateTime.Now - this.FoundingDate;
 
     [JsonIgnore]
+    public TimeSpan TimeSinceEligibilityReference =>
+        this.EligibilityDateReference == default ?
+            TimeSpan.Zero :
+            DateTime.Now - this.EligibilityDateReference;
+
+    [JsonIgnore]
     public TimeSpan TimeUntilEligible => 
-        new TimeSpan(30, 0, 0, 0) - this.TimeSinceFounded;
+        new TimeSpan(30, 0, 0, 0) - this.TimeSinceEligibilityReference;
 
     [JsonIgnore]
     public bool IsEligible => 
-        this.TimeSinceFounded.TotalDays >= 30 && this.Rank >= 6 && !this.HasHouse;
+        this.TimeSinceEligibilityReference.TotalDays >= 30 && this.Rank >= 6 && !this.HasHouse;
 
     [JsonIgnore]
     public DateTime EligibilityDate => 
-        this.FoundingDate == default ? DateTime.MaxValue : this.FoundingDate.AddDays(30);
+        this.EligibilityDateReference == default ? DateTime.MaxValue : this.EligibilityDateReference.AddDays(30);
 
     [JsonIgnore]
     private bool? masterAvailable;
@@ -747,9 +758,9 @@ public class FCData
             $"{this.House!.City} - Ward {this.House.Ward + 1} - Plot {this.House.Plot + 1}" :
             this.IsEligible ?
                 Censor.Hide(HouseHunterIPC.Instance.GetLotteryTextForFC(this) ?? "Eligible", "Bidding") :
-                this.FoundingDate == default ?
+                this.EligibilityDateReference == default ?
                     "Not yet founded" :
-                    this.TimeSinceFounded.TotalDays >= 30 ?
+                    this.TimeSinceEligibilityReference.TotalDays >= 30 ?
                         "30d passed. Check Upcoming tab" :
                         $@"{this.@TimeUntilEligible:%d\d\ %h\h} left";
 
