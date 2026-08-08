@@ -108,6 +108,12 @@ public static class FCTrackerTheme
     public static uint RowHighlightColor =>
         ImGui.GetColorU32(FCTrackerTheme.AccentBlueDim);
 
+    public static float PulseT(float periodSeconds = 1.6f) =>
+        (MathF.Sin((float) ImGui.GetTime() * MathF.Tau / periodSeconds) + 1f) * 0.5f;
+
+    public static Vector4 Pulse(Vector4 color, float minAlpha, float maxAlpha, float periodSeconds = 1.6f) =>
+        color with { W = minAlpha + (maxAlpha - minAlpha) * PulseT(periodSeconds) };
+
     public static Vector4 GetActionColor(int count) => count switch
     {
         >= 2 => AccentGreen,

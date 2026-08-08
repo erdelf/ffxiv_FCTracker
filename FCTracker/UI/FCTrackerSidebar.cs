@@ -20,7 +20,9 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
     public string? SelectedDatacenter { get; private set; }
     public string? SelectedWorld { get; private set; }
 
-    private const float SidebarWidth = 200f;
+    private const float SidebarWidth    = 200f;
+    private const float PulsePeakAlpha  = 0.35f;
+    private const float PulsePeriod     = 3.0f;
 
     public void Draw()
     {
@@ -34,8 +36,12 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
             this.DrawViewItem("All FCs", FontAwesomeIcon.List, "all", dataProvider.GetTotalCount());
             this.DrawViewItem("Upcoming", FontAwesomeIcon.Clock, "upcoming", dataProvider.GetUpcomingCount(),
                 dataProvider.GetUpcomingCount() > 0 ? FCTrackerTheme.AccentYellow : null);
-            this.DrawViewItem("Ready Now", FontAwesomeIcon.Check, "ready", dataProvider.GetReadyCount(),
-                dataProvider.GetReadyCount() > 0 ? FCTrackerTheme.AccentGreen : null);
+            int  readyCount     = dataProvider.GetReadyCount();
+            bool entryHighlight = readyCount > 0 && FCTrackerPlugin.Plugin.IsEntryPeriod;
+            this.DrawViewItem("Ready Now", FontAwesomeIcon.Check, "ready", readyCount,
+                readyCount > 0 ? FCTrackerTheme.AccentGreen : null,
+                entryHighlight ? FCTrackerTheme.AccentGreen : null,
+                entryHighlight ? EntryPeriodTooltip() : null);
 
             IReadOnlyList<CharData> charData = CharsView.GetCharacters(dataProvider);
             this.DrawViewItem("Characters", FontAwesomeIcon.User, "chars", charData.Count,
@@ -57,7 +63,8 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 4);
     }
 
-    private void DrawViewItem(string label, FontAwesomeIcon icon, string viewId, int count, Vector4? countColor = null)
+    private void DrawViewItem(string label, FontAwesomeIcon icon, string viewId, int count, Vector4? countColor = null,
+                              Vector4? pulseColor = null, string? pulseTooltip = null)
     {
         bool isActive = this.ActiveViewId == viewId && this.SelectedWorld == null && this.SelectedDatacenter == null && this.SelectedRegion == null;
 
@@ -76,21 +83,40 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
             }
         }
 
+        bool hovered = ImGui.IsItemHovered();
+
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 22);
 
-        if (isActive) 
+        if (pulseColor is { } pulse)
+            DrawRowTint(22, FCTrackerTheme.Pulse(pulse, 0f, PulsePeakAlpha, PulsePeriod));
+
+        if (isActive)
             DrawActiveIndicator(22);
+        else if (pulseColor is { } barPulse)
+            DrawActiveIndicator(22, FCTrackerTheme.Pulse(barPulse, 0.3f, 1f, PulsePeriod));
 
         ImGui.SetCursorPosX(12);
         FCTrackerWidgets.IconLabel(
+            pulseColor is { } iconPulse ? FCTrackerTheme.Pulse(iconPulse, 0.6f, 1f, PulsePeriod) :
             isActive ? FCTrackerTheme.AccentBlue : FCTrackerTheme.TextSecondary,
             icon, label,
-            isActive ? FCTrackerTheme.TextBright : FCTrackerTheme.TextPrimary);
+            isActive || pulseColor is not null ? FCTrackerTheme.TextBright : FCTrackerTheme.TextPrimary);
 
         ImGui.SameLine(SidebarWidth - 36);
         DrawCountBadge(count, countColor ?? FCTrackerTheme.TextMuted);
 
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 4);
+
+        if (hovered && pulseTooltip != null)
+            FCTrackerWidgets.Tooltip(pulseTooltip);
+    }
+
+    private static string EntryPeriodTooltip()
+    {
+        TimeSpan remaining = FCTrackerPlugin.Plugin.EntryPeriodCurrentEndDate - DateTime.UtcNow;
+        return remaining.Days > 0
+            ? $"Entry period active until {FCTrackerPlugin.Plugin.EntryPeriodCurrentEndDate:d}"
+            : @$"Entry period active for {remaining:%h\h\ %m\m}";
     }
 
     private void DrawRegionsTree()
@@ -294,7 +320,7 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 2);
     }
 
-    private static void DrawActiveIndicator(float height)
+    private static void DrawActiveIndicator(float height, Vector4? color = null)
     {
         ImDrawListPtr drawList = ImGui.GetWindowDrawList();
         Vector2 windowPos = ImGui.GetWindowPos();
@@ -302,7 +328,19 @@ public class FCTrackerSidebar(IFCDataProvider dataProvider)
         drawList.AddRectFilled(
             windowPos with { Y = windowPos.Y + cursorY },
             new Vector2(windowPos.X + 3, windowPos.Y + cursorY + height),
-            ImGui.GetColorU32(FCTrackerTheme.AccentBlue)
+            ImGui.GetColorU32(color ?? FCTrackerTheme.AccentBlue)
+        );
+    }
+
+    private static void DrawRowTint(float height, Vector4 color)
+    {
+        ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+        Vector2 windowPos = ImGui.GetWindowPos();
+        float cursorY = ImGui.GetCursorPosY();
+        drawList.AddRectFilled(
+            windowPos with { Y = windowPos.Y + cursorY },
+            new Vector2(windowPos.X + SidebarWidth, windowPos.Y + cursorY + height),
+            ImGui.GetColorU32(color)
         );
     }
 

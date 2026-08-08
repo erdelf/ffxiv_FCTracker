@@ -60,8 +60,10 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
     public const    int      CYCLE_DURATION_DAYS          = ENTRY_PERIOD_DURATION_DAYS + RESULTS_PERIOD_DURATION_DAYS;
 
     public          DateTime EntryPeriodCurrentStartDate => DateTime.UtcNow.AddDays(-((DateTime.UtcNow - this.EntryDateTimeReference).TotalDays % CYCLE_DURATION_DAYS));
-    public          bool     IsEntryPeriod               => DateTime.UtcNow < this.EntryPeriodCurrentStartDate.AddDays(ENTRY_PERIOD_DURATION_DAYS);
+    public          DateTime EntryPeriodCurrentEndDate   => this.EntryPeriodCurrentStartDate.AddDays(ENTRY_PERIOD_DURATION_DAYS);
+    public          bool     IsEntryPeriod               => DateTime.UtcNow < this.EntryPeriodCurrentEndDate;
     public          DateTime EntryPeriodNextStartDate    => this.EntryPeriodCurrentStartDate.AddDays(CYCLE_DURATION_DAYS);
+    public          DateTime EntryPeriodNextEndDate      => this.EntryPeriodNextStartDate.AddDays(ENTRY_PERIOD_DURATION_DAYS);
 
     public const string ScrambleTag = "«FC»";
 
