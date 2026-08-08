@@ -142,6 +142,8 @@ public class Configuration
             charData = new CharData { CID = Player.CID };
 
         charData.InventoryData.RefreshInventoryData();
+        HouseHunterIPC.Instance.ClearCacheFor(Player.CID);
+
         this.GatheredData.CharByCID[Player.CID] = charData with
                                                   {
                                                       Name = Player.Name!,

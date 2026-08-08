@@ -47,6 +47,9 @@
             return this.cachedLotteryData.GetValueOrDefault(cid, null);
         }
 
+        public void ClearCacheFor(ulong CID) =>
+            this.cachedLotteryData.Remove(CID);
+
         public IEnumerable<LotterySaveData?> GetLotteryDataForFC(FCData fc)
         {
             foreach (ulong cid in fc.MemberCIDs)

@@ -143,6 +143,25 @@ public class ReadyNowView : IFCView
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetFCPointColor(fc.FCPoints), fc.FCPoints.ToString("N0"));
 
         ImGui.TableNextColumn();
-        FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, Censor.Hide(HouseHunterIPC.Instance.GetLotteryTextForFC(fc) ?? string.Empty, "Bidding"));
+
+        if (!HouseHunterIPC.Instance.Available)
+            return;
+
+        IEnumerable<HouseHunterIPC.LotterySaveData?> data = HouseHunterIPC.Instance.GetLotteryDataForFC(fc).ToList();
+
+        if (data.Any())
+        {
+            bool selectableBidding = ImGui.Selectable("##BiddingCell" + fc.Id);
+            ImGui.SetItemAllowOverlap();
+            ImGui.SameLine(0, 0);
+
+            FCTrackerWidgets.ColoredText(FCTrackerTheme.AccentBlue, Censor.Hide("Bidding on " + 
+                                                                                string.Join(", ", data.Select(d => $"{FCData.HouseInfo.GetResidentialAetheryteByTerritoryType(d!.Territory)} Ward {d!.Ward + 1} - Plot {d!.Plot + 1}")), "Bidding"));
+
+            HouseHunterIPC.LotterySaveData? saveData = data.First();
+
+            if(selectableBidding)
+                ECommonsIPC.Lifestream.GoToHousingAddress(($"{fc.WorldName}-{fc.Id}-Bidding", (int)fc.HomeWorldId, (int) FCData.HouseInfo.GetResidentialAetheryteByTerritoryType(saveData!.Territory)!, (int)saveData!.Ward + 1, 0, (int)saveData!.Plot + 1, -1, false, false, string.Empty));
+        }
     }
 }
