@@ -92,7 +92,7 @@ namespace FCTracker.Services
 
         public int GetItemCount(uint id)
         {
-            if (ECommonsIPC.AllaganTools.Available && this.CID != 0 && (!this.cachedItemCounts.ContainsKey(id) || EzThrottler.Throttle($"ItemCheck_{id}_{this.CID}", 300_000)))
+            if (ECommonsIPC.AllaganTools.Available && this.CID != 0 && (this.cachedItemCounts == null || !this.cachedItemCounts.ContainsKey(id) || EzThrottler.Throttle($"ItemCheck_{id}_{this.CID}", 300_000)))
             {
                 if(Configuration.Instance.AllCharData.TryGetValue(this.CID, out CharData charData))
                     if (charData.ATChars != null)
