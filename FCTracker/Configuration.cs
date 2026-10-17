@@ -523,8 +523,8 @@ public struct ARData
         if(next == null)
             return this;
 
-        this.RepairCount = next.Value.RepairCount;
-        this.FuelCount = next.Value.FuelCount;
+        this.RepairCount += next.Value.RepairCount;
+        this.FuelCount += next.Value.FuelCount;
         return this;
     }
 }
