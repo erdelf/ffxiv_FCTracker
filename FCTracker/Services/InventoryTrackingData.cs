@@ -28,7 +28,7 @@ namespace FCTracker.Services
 
         private Dictionary<uint, int>? cachedItemCounts;
 
-        private Dictionary<uint, int> CachedItemCounts
+        public Dictionary<uint, int> CachedItemCounts
         {
             get
             {

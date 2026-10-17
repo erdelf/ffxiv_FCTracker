@@ -26,6 +26,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using InteropGenerator.Runtime;
+using IPC;
 using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 using Callback = ECommons.Automation.Callback;
@@ -40,10 +41,11 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
 
     private const string CommandName = "/fctrack";
 
-    public readonly WindowSystem windowSystem = new("FCTracker");
-    private         FCTrackerWindow MainWindow { get; init; } = null!;
+    public readonly WindowSystem    windowSystem = new("FCTracker");
+    private         FCTrackerWindow MainWindow   { get; init; } = null!;
     private         ConfigWindow    ConfigWindow { get; init; } = null!;
     public          IFCDataProvider DataProvider { get; init; } = null!;
+    private         IPCProvider     IPCProvider  { get; init; } = null!;
 
     private readonly (string[], string, Action<string[]>)[] commands = null!;
 
@@ -101,6 +103,8 @@ public sealed class FCTrackerPlugin : IDalamudPlugin
                                                    TimeLimitMS     = 10_000,
                                                    ShowDebug       = true
                                                });
+
+            this.IPCProvider = new IPCProvider();
 
             if (Svc.ClientState.IsLoggedIn)
                 this.ClientStateOnLogin();

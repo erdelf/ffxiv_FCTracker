@@ -515,8 +515,18 @@ public struct FCRankData
 [JsonObject(MemberSerialization.OptOut)]
 public struct ARData
 {
-    public int RepairCount { get; set; }
-    public int FuelCount   { get; set; }
+    public int    RepairCount { get; set; }
+    public int    FuelCount   { get; set; }
+
+    public ARData Merge(ARData? next)
+    {
+        if(next == null)
+            return this;
+
+        this.RepairCount = next.Value.RepairCount;
+        this.FuelCount = next.Value.FuelCount;
+        return this;
+    }
 }
 
 public enum HousingStatusCategory
