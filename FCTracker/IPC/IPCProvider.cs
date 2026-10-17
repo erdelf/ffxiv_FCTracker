@@ -14,8 +14,9 @@ public class IPCProvider
     internal IPCProvider() =>
         EzIPC.Init(this);
 
-    [EzIPC]
-    public FCData.HouseInfo? GetHousingStatus(ulong CID) =>
+    [EzIPC] public int GetIPCVersion() => 1;
+
+    [EzIPC] public FCData.HouseInfo? GetHousingStatus(ulong CID) =>
         Configuration.Instance.AllFCData.TryGetValue(CID, out FCData? fcData) ? fcData.House : null;
 
     [EzIPC] public FCData.HouseInfo? GetHousingStatusByChar(ulong CID)
@@ -27,6 +28,12 @@ public class IPCProvider
 
         return null;
     }
+
+    [EzIPC] public Dictionary<ulong, FCData> GetAllFCData(bool onlyCurrentAccount) =>
+        onlyCurrentAccount ? Configuration.Instance.GatheredData.FCData : Configuration.Instance.AllFCData;
+
+    [EzIPC] public Dictionary<ulong, CharData> GetAllCharData(bool onlyCurrentAccount) =>
+        onlyCurrentAccount ? Configuration.Instance.GatheredData.CharByCID : Configuration.Instance.AllCharData;
 
     [EzIPC] public FCData? GetFCData(ulong CID) =>
         Configuration.Instance.AllFCData.GetValueOrDefault(CID);
@@ -40,7 +47,10 @@ public class IPCProvider
     [EzIPC] public IEnumerable<ulong> RegisteredChars(bool onlyCurrentAccount) =>
         onlyCurrentAccount ? Configuration.Instance.GatheredData.CharByCID.Keys : Configuration.Instance.AllCharData.Keys;
 
-#region Inventory
+    [EzIPC] public DateTime GetEligibilityDate(ulong FCCID) =>
+        Configuration.Instance.AllFCData.TryGetValue(FCCID, out FCData? fcData) ? fcData.EligibilityDate : DateTime.MinValue;
+
+    #region Inventory
     [EzIPC] public Dictionary<uint, int> GetCharacterItems(ulong CID) => 
         Configuration.Instance.AllCharData.TryGetValue(CID, out CharData charData) ? charData.InventoryData.CachedItemCounts : [];
 
