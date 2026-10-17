@@ -51,7 +51,7 @@ namespace FCTracker.Services
         public int Gil => this.GetItemCount(1);
 
         private static readonly uint[]  SALVAGE_ITEM_IDS = [22500u, 22501u, 22502u, 22503u, 22504u, 22505u, 22506u, 22507u];
-        public static           Item?[] SalvageItems       => field ??= SALVAGE_ITEM_IDS.Select(ExcelItemHelper.Get).Where(item => item != null).ToArray();
+        public static           Item?[] SalvageItems     => field ??= SALVAGE_ITEM_IDS.Select(ExcelItemHelper.Get).Where(item => item != null).ToArray();
         public                  int     GetSalvageCount  => SalvageItems.Sum(item => this.GetItemCount(item!.Value.RowId));
         public                  int[]   GetSalvageCounts => SalvageItems.Select(item => this.GetItemCount(item!.Value.RowId)).ToArray();
 
@@ -92,12 +92,13 @@ namespace FCTracker.Services
 
         public int GetItemCount(uint id)
         {
-            this.cachedItemCounts ??= [];
             if (ECommonsIPC.AllaganTools.Available && this.CID != 0 && (!this.cachedItemCounts.ContainsKey(id) || EzThrottler.Throttle($"ItemCheck_{id}_{this.CID}", 300_000)))
             {
                 if(Configuration.Instance.AllCharData.TryGetValue(this.CID, out CharData charData))
                     if (charData.ATChars != null)
                     {
+                        this.cachedItemCounts ??= [];
+
                         uint atCount = charData.ATChars.Aggregate<ulong, uint>(0, (current, type) => current + ECommonsIPC.AllaganTools.ItemCount(id, type, -1));
                         Svc.Log.Debug($"Item count polled from AT for {id} for CID {this.CID}: {atCount}");
 
