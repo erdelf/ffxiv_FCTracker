@@ -488,7 +488,7 @@ public struct CharData()
                        this.LeveAllowances - 3 :
                        timePassed.TotalDays > 30 ?
                            100 :
-                           Math.Min(100, this.LeveAllowances + (int)(timePassed.TotalHours / 12));
+                           Math.Min(100, this.LeveAllowances + ((int)(timePassed.TotalHours / 12) * 3));
         }
     }
 
