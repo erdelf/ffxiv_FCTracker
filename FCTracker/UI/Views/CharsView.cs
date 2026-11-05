@@ -28,7 +28,8 @@ public class CharsView : IFCView
         ["Combat Lvl"]    = "Highest combat class/job\nRecommended to go to 30 to unlock job and chocobo",
         ["Gathering Lvl"] = "Highest gathering class\nRetainers become self-sufficient at around level 55",
         ["Gil"]           = "Gil is required for the FC founding, house bidding/building, buying a workshop\nand potentially sub parts and repair materials.\n15.000 required for FC registration\n4.2 million required at minimum for House + Workshop\n6 million at being eligible for housing is a good starting point",
-        ["Leves"]         = "Rough estimation\nLeves can be used for GC rank up via GC leves and FSH levelup in Costa del Sol\n71 leves required till GC rank 6 (Expert Delivery)\n100 leves typically used for FSH"
+        ["Leves"]         = "Rough estimation\nLeves can be used for GC rank up via GC leves and FSH levelup in Costa del Sol\n71 leves required till GC rank 6 (Expert Delivery)\n100 leves typically used for FSH",
+        ["Ventures"]      = "Number of ventures\nVentures are required for retainers\n100 ventures required from level 1 to level 55 (roughly self-sufficiency)"
     };
 
     public (string Title, string Subtitle) GetHeaderInfo(FCViewContext ctx) =>
@@ -119,7 +120,7 @@ public class CharsView : IFCView
                                       ImGuiTableFlags.Resizable;
 
 
-        using ImRaii.TableDisposable table = ImRaii.Table("##CharTable", 6, flags);
+        using ImRaii.TableDisposable table = ImRaii.Table("##CharTable", 7, flags);
         if (!table.Success) 
             return;
 
@@ -131,6 +132,7 @@ public class CharsView : IFCView
         ImGui.TableSetupColumn("Gathering Lvl", ImGuiTableColumnFlags.WidthFixed, 20);
         ImGui.TableSetupColumn("Gil",           ImGuiTableColumnFlags.WidthFixed, 60);
         ImGui.TableSetupColumn("Leves",         ImGuiTableColumnFlags.WidthFixed, 50);
+        ImGui.TableSetupColumn("Ventures",      ImGuiTableColumnFlags.WidthFixed, 50);
         ImGui.TableSetupColumn("##Spacer",      ImGuiTableColumnFlags.WidthStretch);
 
         using (ImRaii.PushColor(ImGuiCol.TableHeaderBg, FCTrackerTheme.BackgroundHeader))
@@ -138,7 +140,7 @@ public class CharsView : IFCView
             FCTrackerWidgets.TableHeadersRowWithTooltips(HeaderTooltips);
 
         foreach (IGrouping<World, CharData> charGroup in charWorlds)
-            DrawSection(charGroup.Key, charGroup.ToList());
+            DrawSection(charGroup.Key, [.. charGroup]);
     }
 
     private static void DrawWorldGroupHeader(World world, List<CharData> chars)
@@ -264,6 +266,11 @@ public class CharsView : IFCView
         ImGui.TableNextColumn();
 
         FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerLeveColor(ch.LeveAllowancesNow), ch.LeveAllowancesNow.ToString());
+
+        ImGui.TableNextColumn();
+
+        int ventureCount = ch.InventoryData.Ventures;
+        FCTrackerWidgets.ColoredText(FCTrackerTheme.GetPlayerVentureColor(ventureCount), ventureCount.ToString());
 
         ImGui.TableNextColumn();
 

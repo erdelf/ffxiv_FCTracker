@@ -7,6 +7,7 @@ namespace FCTracker.Services
     using System.Linq;
     using System.Text;
     using Dalamud.Game.Text;
+    using ECommons;
     using ECommons.DalamudServices;
     using ECommons.ExcelServices;
     using ECommons.IPC;
@@ -49,6 +50,7 @@ namespace FCTracker.Services
         }
 
         public int Gil => this.GetItemCount(1);
+        public int Ventures => this.GetItemCount(21072);
 
         private static readonly uint[]  SALVAGE_ITEM_IDS = [22500u, 22501u, 22502u, 22503u, 22504u, 22505u, 22506u, 22507u];
         public static           Item?[] SalvageItems     => field ??= SALVAGE_ITEM_IDS.Select(ExcelItemHelper.Get).Where(item => item != null).ToArray();
@@ -139,6 +141,14 @@ namespace FCTracker.Services
                     }
                 }
             }
+
+            this.inventoryContainers[InventoryType.Invalid-1] = [];
+            foreach ((uint id, CurrencyManager.CurrencyItem item) in CurrencyManager.Instance()->ItemBucket)
+                this.inventoryContainers[InventoryType.Invalid-1].Add(new InventoryItemData(id, item.Count));
+            foreach ((uint id, CurrencyManager.ContentCurrencyItem item) in CurrencyManager.Instance()->ContentItemBucket)
+                this.inventoryContainers[InventoryType.Invalid - 1].Add(new InventoryItemData(id, item.Count));
+            foreach ((uint id, CurrencyManager.SpecialCurrencyItem item) in CurrencyManager.Instance()->SpecialItemBucket)
+                this.inventoryContainers[InventoryType.Invalid - 1].Add(new InventoryItemData(id, item.Count.ToInt()));
 
             this.cachedItemCounts = null;
 
